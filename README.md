@@ -18,15 +18,16 @@ Thinks to take care of
 TODO (to make it functional)
 ----------------------------
 
-- render the rst in html format, I couldn't continue doing this because I
-  couldn't found any library for reStructuredText for Go :(
+- ~~render the rst in html format, I couldn't continue doing this because I
+  couldn't found any library for reStructuredText for Go :(~~ I will use
+  markdown instead, I was loosing a lot of precious time for nothing.
 
-In the case that it's not possible to render RST files, I will need to migrate
-my posts to markdown, which will be crappy, but better than nothing.
+~~In the case that it's not possible to render RST files, I will need to migrate
+my posts to markdown, which will be crappy, but better than nothing.~~
 
 - configuration yaml file:
 
-  + title
+  + title of the blog
 
   + author
 
@@ -42,7 +43,7 @@ my posts to markdown, which will be crappy, but better than nothing.
 
 - pagination of the articles.
 
-- render pages too, not just articles (example ``about.html``).
+~~ - render pages too, not just articles (example ``about.html``). ~~
 
 
 Nice extras (preference order)
@@ -56,3 +57,22 @@ Nice extras (preference order)
 #. allow draft articles.
 
 #. support markdown.
+
+Format
+------
+
+I am using markdown now. Whatever thing that is supported by [blackfriday
+library](https://github.com/russross/blackfriday) is supported here. The only
+difference is that I am adding some metadata to the files. For example, if you
+want to define the date for the file:
+
+```
+---
+date: Monday, 4th April XXYY
+---
+
+And here is just the title.
+```
+
+It's really important that you let a line between the ``---`` and the beginning
+of your article.
