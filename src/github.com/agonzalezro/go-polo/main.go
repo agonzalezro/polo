@@ -6,6 +6,7 @@ import (
 
 	"github.com/agonzalezro/go-polo/parser"
 	"github.com/agonzalezro/go-polo/reader"
+	"github.com/agonzalezro/go-polo/writer"
 )
 
 var (
@@ -25,7 +26,14 @@ func main() {
 
 	pageFilePaths, articleFilePaths := reader.GetPagesAndArticles(inputPath)
 	fmt.Printf("PAGES:\n")
-	parser.FilesToHtml(pageFilePaths, outputPath)
-	fmt.Printf("ARTICLES:\n")
-	parser.FilesToHtml(articleFilePaths, outputPath)
+	pages := parser.ParseFiles(pageFilePaths)
+	for _, document := range pages {
+		writer.WriteToHtml(document, outputPath)
+	}
+
+	fmt.Printf("\nARTICLES:\n")
+	articles := parser.ParseFiles(articleFilePaths)
+	for _, document := range articles {
+		writer.WriteToHtml(document, outputPath)
+	}
 }

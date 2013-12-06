@@ -2,13 +2,12 @@ package parser
 
 import (
 	"bufio"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 
-	//"github.com/agonzalezro/go-polo/utils"
+	"github.com/agonzalezro/go-polo/utils"
 	"github.com/russross/blackfriday"
 )
 
@@ -35,6 +34,8 @@ func getMetadata(filePath string) (metadata map[string]string, content []byte) {
 			// TODO: this is crap but I don't know how to seek to go back to
 			// the beginning of the file
 			metadata["title"] = line
+			// TODO: check if the slug exist and in that case add a number at the end
+			metadata["slug"] = utils.Slugify(line)
 			content, _ := ioutil.ReadFile(filePath)
 			return metadata, content
 		}
@@ -62,6 +63,9 @@ func getMetadata(filePath string) (metadata map[string]string, content []byte) {
 
 		if isFirstLine {
 			metadata["title"] = string(bytes)
+			// TODO: check if there is a slug key on the metadata and don't assign it in that case
+			// TODO: remember to add a number if the slug is repited
+			metadata["slug"] = utils.Slugify(metadata["title"])
 			isFirstLine = false
 		}
 
@@ -72,20 +76,23 @@ func getMetadata(filePath string) (metadata map[string]string, content []byte) {
 	return
 }
 
-func fileToHtml(filePath string) (map[string]string, []byte) {
+func parseFile(filePath string) (map[string]string, []byte) {
 	metadata, content := getMetadata(filePath)
 
-	fmt.Printf("%+v", metadata)
-
 	html := blackfriday.MarkdownCommon(content)
-	return nil, html
-
-	//fmt.Printf("%s\n", utils.Slugify(title))
+	return metadata, html
 }
 
-func FilesToHtml(articleFilePaths []string, output string) {
+type ParsedFile struct {
+	Metadata map[string]string
+	Content  []byte
+}
+
+func ParseFiles(articleFilePaths []string) []ParsedFile {
+	var parsedFiles []ParsedFile
 	for _, filePath := range articleFilePaths {
-		_, html := fileToHtml(filePath)
-		fmt.Printf("%s", html)
+		metadata, html := parseFile(filePath)
+		parsedFiles = append(parsedFiles, ParsedFile{metadata, html})
 	}
+	return parsedFiles
 }
