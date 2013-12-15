@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 
 	"github.com/agonzalezro/go-polo/parser"
 	"github.com/agonzalezro/go-polo/reader"
@@ -25,15 +24,9 @@ func main() {
 	flag.Parse()
 
 	pageFilePaths, articleFilePaths := reader.GetPagesAndArticles(inputPath)
-	fmt.Printf("PAGES:\n")
-	pages := parser.ParseFiles(pageFilePaths)
-	for _, document := range pages {
-		writer.WriteToHtml(document, outputPath)
-	}
 
-	fmt.Printf("\nARTICLES:\n")
+	pages := parser.ParseFiles(pageFilePaths)
 	articles := parser.ParseFiles(articleFilePaths)
-	for _, document := range articles {
-		writer.WriteToHtml(document, outputPath)
-	}
+
+	writer.DumpAll(pages, articles, outputPath)
 }

@@ -83,11 +83,6 @@ func parseFile(filePath string) (map[string]string, []byte) {
 	return metadata, html
 }
 
-type ParsedFile struct {
-	Metadata map[string]string
-	Content  []byte
-}
-
 func ParseFiles(articleFilePaths []string) []ParsedFile {
 	var parsedFiles []ParsedFile
 	for _, filePath := range articleFilePaths {
