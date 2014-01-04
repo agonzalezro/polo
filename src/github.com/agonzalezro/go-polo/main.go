@@ -28,5 +28,6 @@ func main() {
 	pages := parser.ParseFiles(pageFilePaths)
 	articles := parser.ParseFiles(articleFilePaths)
 
-	writer.DumpAll(pages, articles, outputPath)
+	site := writer.Site{Pages: pages, Articles: articles, OutputPath: outputPath}
+	site.WriteSite()
 }

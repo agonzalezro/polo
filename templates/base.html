@@ -1,3 +1,4 @@
+{{define "base"}}
 <html>
   <head>
     <meta charset="utf-8">
@@ -18,17 +19,22 @@
           </button>
           <a class="navbar-brand" href="#">Project name</a>
         </div>
-        {{ if .Pages }}
+        {{if .Pages}}
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            {{ range $_, $page := .Pages }}
-            <li><a href="pages/{{ $page.Metadata.slug }}.html">{{ $page.Metadata.title }}</a></li>
-            {{ end }}
+            {{range $_, $page := .Pages}}
+            <li><a href="pages/{{$page.Metadata.slug}}.html">{{$page.Metadata.title}}</a></li>
+            {{end}}
           </ul>
         </div>
         {{ end }}
       </div>
     </div>
-  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+    <div class="container">
+      {{template "content" .}}
+    </div>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
   </body>
 </html>
+{{end}}

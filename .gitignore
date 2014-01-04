@@ -25,3 +25,4 @@ bin
 src/github.com/russross
 
 /*.html
+pages/*.html

@@ -1,0 +1,9 @@
+{{define "content"}}
+{{if .Articles}}
+<ul>
+  {{range $_, $article := .Articles}}
+  <li><a href="{{$article.Metadata.slug}}.html">{{$article.Metadata.title}}</a></li>
+  {{end}}
+</ul>
+{{end}}
+{{end}}

@@ -43,8 +43,11 @@ my posts to markdown, which will be crappy, but better than nothing.~~
 
 - pagination of the articles.
 
-~~ - render pages too, not just articles (example ``about.html``). ~~
+- ~~render pages too, not just articles (example ``about.html``).~~
 
+- add proper HTML to the templates.
+
+- add some nice design.
 
 Nice extras (preference order)
 ------------------------------
@@ -56,7 +59,6 @@ Nice extras (preference order)
 
 3. allow draft articles.
 
-4. support markdown.
 
 Format
 ------
