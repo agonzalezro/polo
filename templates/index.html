@@ -4,6 +4,7 @@
 
 {{define "content"}}
 {{if .Articles}}
+<h1>Archive</h1>
 <ul>
   {{range $_, $article := .Articles}}
   <li><a href="{{$article.Metadata.slug}}.html">{{$article.Metadata.title}}</a></li>

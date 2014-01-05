@@ -21,7 +21,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">{{.Config.Title}}</a>
+          <a class="navbar-brand" href="/">{{.Config.Title}}</a>
         </div>
         {{if .Pages}}
         <div class="navbar-collapse collapse">
@@ -32,13 +32,26 @@
           </ul>
         </div>
         {{ end }}
-        </div>
+      </div>
     </div>
 
     <div class="container">
       {{template "content" .}}
     </div>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    {{if .Config.GoogleAnalyticsId}}
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', '{{.Config.GoogleAnalyticsId}}']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    {{end}}
   </body>
 </html>
 {{end}}

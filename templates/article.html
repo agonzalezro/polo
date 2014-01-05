@@ -4,4 +4,19 @@
 
 {{define "content"}}
 {{.Article.Html}}
+<span class="label label-success">by {{.Config.Author}}</span>
+<span class="label label-success">{{.Article.Metadata.date}}</span>
+<span class="label label-info">{{.Article.Metadata.tags}}</span>
+{{if .Config.DisqusSitename}}
+<h2>Comments</h2>
+<script type="text/javascript">
+  var disqus_shortname = '{{.Config.DisqusSitename}}';
+  (function () {
+    var s = document.createElement('script'); s.async = true;
+    s.type = 'text/javascript';
+    s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+    (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+  }());
+</script>
+{{end}}
 {{end}}

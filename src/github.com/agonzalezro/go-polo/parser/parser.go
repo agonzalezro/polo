@@ -54,7 +54,8 @@ func getMetadata(filePath string) (metadata map[string]string, content []byte) {
 
 			metadataLine := strings.Split(line, ":")
 			key := strings.ToLower(metadataLine[0])
-			metadata[key] = metadataLine[1]
+			// It's possible that : is on the value of the metadata too (example: a date)
+			metadata[key] = strings.Trim(strings.Join(metadataLine[1:], ":"), " ")
 		}
 	}
 
