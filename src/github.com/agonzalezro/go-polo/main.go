@@ -9,15 +9,15 @@ import (
 )
 
 var (
-	inputPath    string
-	outputPath   string
-	settingsFile string
+	inputPath  string
+	outputPath string
+	configFile string
 )
 
 func init() {
 	flag.StringVar(&inputPath, "input", ".", "path to your articles source files.")
 	flag.StringVar(&outputPath, "output", ".", "path where you want to creat the html files.")
-	flag.StringVar(&settingsFile, "settings", "settings.yaml", "the settings file to create your site.")
+	flag.StringVar(&configFile, "config", "config.json", "the settings file to create your site.")
 }
 
 func main() {
@@ -25,9 +25,10 @@ func main() {
 
 	pageFilePaths, articleFilePaths := reader.GetPagesAndArticles(inputPath)
 
+	config := parser.ParseConfig(configFile)
 	pages := parser.ParseFiles(pageFilePaths)
 	articles := parser.ParseFiles(articleFilePaths)
 
-	site := writer.Site{Pages: pages, Articles: articles, OutputPath: outputPath}
+	site := writer.Site{Config: config, Pages: pages, Articles: articles, OutputPath: outputPath}
 	site.WriteSite()
 }

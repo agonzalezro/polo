@@ -2,6 +2,7 @@ package parser
 
 import (
 	"bufio"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"os"
@@ -90,4 +91,20 @@ func ParseFiles(articleFilePaths []string) []ParsedFile {
 		parsedFiles = append(parsedFiles, ParsedFile{metadata, html})
 	}
 	return parsedFiles
+}
+
+func ParseConfig(configFile string) Config {
+	file, err := os.Open(configFile)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	decoder := json.NewDecoder(file)
+	config := &Config{}
+
+	err = decoder.Decode(&config)
+	if err != nil {
+		log.Panic(err)
+	}
+	return *config
 }

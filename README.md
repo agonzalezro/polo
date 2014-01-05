@@ -1,7 +1,7 @@
 THIS PROJECT ISN'T WORKING YET
 ==============================
 
-For now, I am going to use the ``README.rst`` just to write down my notes and
+For now, I am going to use the ``README.md`` just to write down my notes and
 perhaps point to there to somebody that can help me with them.
 
 What's it?

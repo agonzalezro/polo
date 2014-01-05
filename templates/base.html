@@ -4,9 +4,13 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{template "title" .}}</title>
+
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
   </head>
+
   <body>
     <div class="navbar navbar-default navbar-static-top" role="navigation">
       <div class="container">
@@ -17,7 +21,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Project name</a>
+          <a class="navbar-brand" href="#">{{.Config.Title}}</a>
         </div>
         {{if .Pages}}
         <div class="navbar-collapse collapse">
@@ -28,7 +32,7 @@
           </ul>
         </div>
         {{ end }}
-      </div>
+        </div>
     </div>
 
     <div class="container">

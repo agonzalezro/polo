@@ -1,3 +1,7 @@
+{{define "title"}}
+{{.Article.Metadata.title}} | {{.Config.Title}}
+{{end}}
+
 {{define "content"}}
-<h1>{{.TemporalParsedFile.Metadata.title}}</h1>
+{{.Article.Html}}
 {{end}}

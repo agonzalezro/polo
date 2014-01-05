@@ -10,11 +10,12 @@ import (
 )
 
 type Site struct {
-	Config          map[string]string // TODO
+	Config          parser.Config
 	Pages, Articles []parser.ParsedFile
 	OutputPath      string
 
-	TemporalParsedFile parser.ParsedFile // TODO: This is not the best option, but it does the work
+	Article parser.ParsedFile // TODO: This is not the best option, but it does the work
+	Page    parser.ParsedFile
 }
 
 func (site Site) writeIndex() {
@@ -38,7 +39,7 @@ func (site Site) writeArticle(article parser.ParsedFile) {
 	if err != nil {
 		log.Panic(err)
 	}
-	site.TemporalParsedFile = article
+	site.Article = article
 	template.ExecuteTemplate(file, "base", site)
 }
 
@@ -57,7 +58,7 @@ func (site Site) writePage(page parser.ParsedFile) {
 	if err != nil {
 		log.Panic(err)
 	}
-	site.TemporalParsedFile = page
+	site.Page = page
 	template.ExecuteTemplate(file, "base", site)
 }
 

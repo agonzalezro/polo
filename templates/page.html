@@ -1,3 +1,7 @@
+{{define "title"}}
+{{.Page.Metadata.title}} | {{.Config.Title}}
+{{end}}
+
 {{define "content"}}
-<h1>{{.TemporalParsedFile.Metadata.title}}</h1>
+{{.Page.Html}}
 {{end}}
