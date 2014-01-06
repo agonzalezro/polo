@@ -12,7 +12,7 @@ What's it?
 It's a static blog rendering tool. Yes, I know that there a lot of them out
 there but I just want mine to learn a little bit of Go coding.
 
-Hot to use it
+How to use it
 -------------
 
 For now I am not providing binaries, you will need to compile it yourself, but
@@ -51,20 +51,3 @@ want to define the date for the file:
 
 It's really important that you let a line between the ``---`` and the beginning
 of your article.
-
-TODO
-----
-
-### Essential
-
-1. Paginate.
-2. Add sharethis.
-3. Panic when 2 slugs are going to be the same.
-4. Add favicon?
-
-#### Nice extras (preference order)
-
-1. themes (if an override template exist use it, if not, fallback to the
-   default).
-2. search option, even with Google could be ok.
-3. allow draft articles.
