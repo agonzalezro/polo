@@ -3,21 +3,36 @@ package parser
 import (
 	"bufio"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/agonzalezro/go-polo/utils"
-	"github.com/russross/blackfriday"
 )
 
-func getMetadata(filePath string) (metadata map[string]string, content []byte) {
-	var (
-		line            string
-		isThereMetadata bool = false
-	)
+func parseMetadata(scanner *bufio.Scanner) (metadata map[string]string) {
 	metadata = make(map[string]string)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if strings.HasPrefix(line, "---") {
+			scanner.Scan() // Read the last ---
+			return metadata
+		}
+
+		metadataSplited := strings.Split(line, ":")
+		key := strings.ToLower(metadataSplited[0])
+		// It's possible that : is on the value of the metadata too (example: a date)
+		metadata[key] = strings.Trim(strings.Join(metadataSplited[1:], ":"), " ")
+	}
+
+	log.Fatal("The metadata section was not properly closed!")
+	return
+}
+
+func parseFile(filePath string) (parsedFile ParsedFile) {
+	isFirstLine := true
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -25,71 +40,46 @@ func getMetadata(filePath string) (metadata map[string]string, content []byte) {
 	}
 
 	scanner := bufio.NewScanner(file)
-
-	ok := scanner.Scan()
-	if ok {
-		line = scanner.Text()
-		if line == "---" {
-			isThereMetadata = true
-		} else {
-			// TODO: this is crap but I don't know how to seek to go back to
-			// the beginning of the file
-			metadata["title"] = line
-			// TODO: check if the slug exist and in that case add a number at the end
-			metadata["slug"] = utils.Slugify(line)
-			content, _ := ioutil.ReadFile(filePath)
-			return metadata, content
-		}
-	}
-
-	if isThereMetadata {
-		for scanner.Scan() {
-			line = scanner.Text()
-
-			// We have finished reading the metadata
-			if strings.HasPrefix(line, "---") {
-				scanner.Scan() // Read one more line for the \n
-				break
-			}
-
-			metadataLine := strings.Split(line, ":")
-			key := strings.ToLower(metadataLine[0])
-			// It's possible that : is on the value of the metadata too (example: a date)
-			metadata[key] = strings.Trim(strings.Join(metadataLine[1:], ":"), " ")
-		}
-	}
-
-	var isFirstLine bool = true
 	for scanner.Scan() {
-		bytes := scanner.Bytes()
+		line := scanner.Text()
+		if line == "---" {
+			parsedFile.Metadata = parseMetadata(scanner)
+			continue
+		}
 
 		if isFirstLine {
-			metadata["title"] = string(bytes)
+			parsedFile.Title = line
 			// TODO: check if there is a slug key on the metadata and don't assign it in that case
-			// TODO: remember to add a number if the slug is repited
-			metadata["slug"] = utils.Slugify(metadata["title"])
+			parsedFile.Slug = utils.Slugify(line)
+			scanner.Scan() // We don't want the title underlining
+
 			isFirstLine = false
+		} else {
+			//bytesWithNewLine := append(line, []byte("\n")...)
+			parsedFile.Content += line + "\n"
+			//append(parsedFile.Content, bytesWithNewLine...)
 		}
 
-		bytesWithNewLine := append(bytes, []byte("\n")...)
-		content = append(content, bytesWithNewLine...)
 	}
 
-	return
-}
-
-func parseFile(filePath string) (map[string]string, []byte) {
-	metadata, content := getMetadata(filePath)
-
-	html := blackfriday.MarkdownCommon(content)
-	return metadata, html
+	return parsedFile
 }
 
 func ParseFiles(articleFilePaths []string) []ParsedFile {
-	var parsedFiles []ParsedFile
+	var (
+		slugsPresence map[string]bool
+		parsedFiles   []ParsedFile
+	)
+	slugsPresence = make(map[string]bool)
+
 	for _, filePath := range articleFilePaths {
-		metadata, html := parseFile(filePath)
-		parsedFiles = append(parsedFiles, ParsedFile{metadata, html})
+		parsedFile := parseFile(filePath)
+		parsedFiles = append(parsedFiles, parsedFile)
+
+		if _, present := slugsPresence[parsedFile.Slug]; present {
+			log.Fatalf("The slug '%s' already exists!", parsedFile.Slug)
+		}
+		slugsPresence[parsedFile.Slug] = true
 	}
 	return parsedFiles
 }

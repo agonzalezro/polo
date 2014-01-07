@@ -2,6 +2,8 @@ package parser
 
 import (
 	"html/template"
+
+	"github.com/russross/blackfriday"
 )
 
 type Config struct {
@@ -17,9 +19,13 @@ type Config struct {
 
 type ParsedFile struct {
 	Metadata map[string]string
-	Content  []byte
+
+	Title   string
+	Slug    string
+	Content string
 }
 
 func (file ParsedFile) Html() template.HTML {
-	return template.HTML(string(file.Content))
+	html := blackfriday.MarkdownCommon([]byte(file.Content))
+	return template.HTML(html)
 }

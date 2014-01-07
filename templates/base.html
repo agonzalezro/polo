@@ -27,7 +27,7 @@
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             {{range $_, $page := .Pages}}
-            <li><a href="pages/{{$page.Metadata.slug}}.html">{{$page.Metadata.title}}</a></li>
+            <li><a href="pages/{{$page.Slug}}.html">{{$page.Title}}</a></li>
             {{end}}
           </ul>
         </div>

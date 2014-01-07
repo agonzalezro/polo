@@ -1,8 +1,9 @@
 {{define "title"}}
-{{.Article.Metadata.title}} | {{.Config.Title}}
+{{.Article.Title}} | {{.Config.Title}}
 {{end}}
 
 {{define "content"}}
+<h1>{{.Article.Title}}</h1>
 {{.Article.Html}}
 <span class="label label-success">by {{.Config.Author}}</span>
 <span class="label label-success">{{.Article.Metadata.date}}</span>

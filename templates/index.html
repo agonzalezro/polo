@@ -7,7 +7,7 @@
 <h1>Archive</h1>
 <ul>
   {{range $_, $article := .Articles}}
-  <li><a href="{{$article.Metadata.slug}}.html">{{$article.Metadata.title}}</a></li>
+  <li><a href="{{$article.Slug}}.html">{{$article.Title}}</a></li>
   {{end}}
 </ul>
 {{end}}

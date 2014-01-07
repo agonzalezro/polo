@@ -1,7 +1,8 @@
 {{define "title"}}
-{{.Page.Metadata.title}} | {{.Config.Title}}
+{{.Page.Title}} | {{.Config.Title}}
 {{end}}
 
 {{define "content"}}
+<h1>{{.Page.Title}}</h1>
 {{.Page.Html}}
 {{end}}

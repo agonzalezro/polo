@@ -31,7 +31,7 @@ func (site Site) writeIndex() {
 }
 
 func (site Site) writeArticle(article parser.ParsedFile) {
-	filePath := fmt.Sprintf("%s/%s.html", site.OutputPath, article.Metadata["slug"])
+	filePath := fmt.Sprintf("%s/%s.html", site.OutputPath, article.Slug)
 
 	template := template.Must(template.ParseFiles("templates/article.html", "templates/base.html"))
 
@@ -50,7 +50,7 @@ func (site Site) writePage(page parser.ParsedFile) {
 		os.Mkdir(pagesPath, 0777)
 	}
 
-	filePath := fmt.Sprintf("%s/%s.html", pagesPath, page.Metadata["slug"])
+	filePath := fmt.Sprintf("%s/%s.html", pagesPath, page.Slug)
 
 	template := template.Must(template.ParseFiles("templates/page.html", "templates/base.html"))
 
