@@ -25,6 +25,6 @@ bin
 src/github.com/russross
 
 /*.html
-pages/*.htmla
+pages/*.html
 
 .DS_Store
