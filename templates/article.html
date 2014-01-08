@@ -4,10 +4,22 @@
 
 {{define "content"}}
 <h1>{{.Article.Title}}</h1>
-{{.Article.Html}}
+
+{{if .Config.Author }}
 <span class="label label-success">by {{.Config.Author}}</span>
+{{end}}
+
+{{if .Article.Metadata.date}}
 <span class="label label-success">{{.Article.Metadata.date}}</span>
-<span class="label label-info">{{.Article.Metadata.tags}}</span>
+{{end}}
+
+{{if .Article.Metadata.tags}}
+{{range $_, $tag := .Article.Tags}}
+<span class="label label-info">{{$tag}}</span>
+{{end}}
+{{end}}
+
+{{.Article.Html .Article.Content}}
 {{if .Config.DisqusSitename}}
 <h2>Comments</h2>
 <script type="text/javascript">

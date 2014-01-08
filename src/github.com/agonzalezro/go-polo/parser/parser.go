@@ -55,9 +55,7 @@ func parseFile(filePath string) (parsedFile ParsedFile) {
 
 			isFirstLine = false
 		} else {
-			//bytesWithNewLine := append(line, []byte("\n")...)
 			parsedFile.Content += line + "\n"
-			//append(parsedFile.Content, bytesWithNewLine...)
 		}
 
 	}

@@ -2,6 +2,7 @@ package parser
 
 import (
 	"html/template"
+	"strings"
 
 	"github.com/russross/blackfriday"
 )
@@ -25,7 +26,14 @@ type ParsedFile struct {
 	Content string
 }
 
-func (file ParsedFile) Html() template.HTML {
-	html := blackfriday.MarkdownCommon([]byte(file.Content))
+func (file ParsedFile) Html(content string) template.HTML {
+	html := blackfriday.MarkdownCommon([]byte(content))
 	return template.HTML(html)
+}
+
+func (file ParsedFile) Tags() (tags []string) {
+	for _, tag := range strings.Split(file.Metadata["tags"], ",") {
+		tags = append(tags, tag)
+	}
+	return tags
 }
