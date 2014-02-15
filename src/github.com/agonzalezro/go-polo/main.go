@@ -3,9 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/agonzalezro/go-polo/parser"
-	"github.com/agonzalezro/go-polo/reader"
-	"github.com/agonzalezro/go-polo/writer"
+	"github.com/agonzalezro/go-polo/polo"
 )
 
 var (
@@ -23,12 +21,9 @@ func init() {
 func main() {
 	flag.Parse()
 
-	pageFilePaths, articleFilePaths := reader.GetPagesAndArticles(inputPath)
+	db := polo.GetDB()
+	db.Fill(inputPath)
 
-	config := parser.ParseConfig(configFile)
-	pages := parser.ParseFiles(pageFilePaths)
-	articles := parser.ParseFiles(articleFilePaths)
-
-	site := writer.Site{Config: config, Pages: pages, Articles: articles, OutputPath: outputPath}
-	site.WriteSite()
+	site := polo.NewSite(*db, polo.GetConfig(configFile), outputPath)
+	site.Write()
 }
