@@ -61,7 +61,7 @@ func (db *DB) parseAndSave(path string, fileInfo os.FileInfo, err error) error {
 // Create minimal DB struct.
 // It's going to return a DB and it's your work to close it, we can not defer the close call.
 func GetDB() *DB {
-	db, err := sql.Open("sqlite3", "/tmp/shit.db")
+	db, err := sql.Open("sqlite3", "/tmp/db.sqlite")
 	if err != nil {
 		log.Panic("Impossible to open DB in memory!")
 	}

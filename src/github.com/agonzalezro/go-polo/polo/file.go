@@ -92,7 +92,7 @@ func (pf *ParsedFile) load(filePath string) {
 }
 
 // Split the tags into a list.
-func (pf *ParsedFile) Tags() []string {
+func (pf ParsedFile) Tags() []string {
 	return strings.Split(pf.tags, ",")
 }
 
