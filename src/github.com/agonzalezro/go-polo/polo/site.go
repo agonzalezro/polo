@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"os"
+	"strings"
 )
 
 type Site struct {
@@ -40,6 +41,31 @@ func (site Site) writeIndex() {
 	if err := template.ExecuteTemplate(file, "base", site); err != nil {
 		log.Panic(err)
 	}
+}
+
+func (site Site) Tags() (tags []string) {
+	// Not optimal, but it does the job
+	var (
+		seenList   map[string]bool
+		storedTags string
+	)
+
+	query := "SELECT tags FROM files WHERE is_page = 0"
+	rows, err := site.db.connection.Query(query)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	for rows.Next() {
+		rows.Scan(&storedTags)
+		for _, tag := range strings.Split(storedTags, ",") {
+			if _, seen := seenList[tag]; !seen && tag != "" {
+				tags = append(tags, strings.TrimSpace(tag))
+			}
+		}
+	}
+
+	return tags
 }
 
 func (site Site) Articles() (articles []*ParsedFile) {
