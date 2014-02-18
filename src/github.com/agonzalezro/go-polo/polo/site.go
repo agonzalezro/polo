@@ -20,48 +20,6 @@ func NewSite(db DB, config Config, outputPath string) *Site {
 	return &Site{db: db, Config: config, outputPath: outputPath}
 }
 
-// TODO (agonzalezro): this needs to be merged with Pages() and used in writeXXXs
-func (site Site) Articles() (articles []*ParsedFile) {
-	query := `
-		SELECT title, slug, content, tags, date, is_page
-		FROM files
-		WHERE is_page = 0
-		`
-	rows, err := site.db.connection.Query(query)
-	if err != nil {
-		log.Panic(err)
-	}
-	for rows.Next() {
-		var title, slug, content, tags, date string
-		var isPage int
-		rows.Scan(&title, &slug, &content, &tags, &date, isPage)
-		article := ParsedFile{Title: title, Slug: slug, Content: content, tags: tags, Date: date}
-		articles = append(articles, &article)
-	}
-	return articles
-}
-
-// TODO (agonzalezro): use this function from write*
-func (site Site) Pages() (pages []*ParsedFile) {
-	query := `
-		SELECT title, slug, content, tags, date, is_page
-		FROM files
-		WHERE is_page =1
-		`
-	rows, err := site.db.connection.Query(query)
-	if err != nil {
-		log.Panic(err)
-	}
-	for rows.Next() {
-		var title, slug, content, tags, date string
-		var isPage int
-		rows.Scan(&title, &slug, &content, &tags, &date, isPage)
-		page := ParsedFile{Title: title, Slug: slug, Content: content, tags: tags, Date: date}
-		pages = append(pages, &page)
-	}
-	return pages
-}
-
 // Dump all the site content to the disk
 func (site Site) Write() {
 	site.writeIndex()
@@ -78,25 +36,32 @@ func (site Site) writeIndex() {
 	if err != nil {
 		log.Panic(err)
 	}
-	template.ExecuteTemplate(file, "base", site)
+
+	if err := template.ExecuteTemplate(file, "base", site); err != nil {
+		log.Panic(err)
+	}
 }
 
-// Write articles in different files
-func (site Site) writeArticles() {
+func (site Site) Articles() (articles []*ParsedFile) {
 	query := `
-    SELECT title, slug, content, tags, date, is_page
-    FROM files
-	WHERE is_page = 0
-    `
+		SELECT title, slug, content, tags, date
+		FROM files
+		WHERE is_page = 0
+		`
 	rows, err := site.db.connection.Query(query)
 	if err != nil {
 		log.Panic(err)
 	}
 	for rows.Next() {
-		var title, slug, content, tags, date string
-		var isPage int
-		rows.Scan(&title, &slug, &content, &tags, &date, isPage)
-		article := ParsedFile{Title: title, Slug: slug, Content: content, tags: tags, Date: date}
+		article := ParsedFile{isPage: false}
+		rows.Scan(&article.Title, &article.Slug, &article.Content, &article.tags, &article.Date)
+		articles = append(articles, &article)
+	}
+	return articles
+}
+
+func (site Site) writeArticles() {
+	for _, article := range site.Articles() {
 		filePath := fmt.Sprintf("%s/%s.html", site.outputPath, article.Slug)
 
 		template := template.Must(template.ParseFiles("templates/article.html", "templates/base.html"))
@@ -105,7 +70,7 @@ func (site Site) writeArticles() {
 		if err != nil {
 			log.Panic(err)
 		}
-		site.Article = article
+		site.Article = *article
 		if err := template.ExecuteTemplate(file, "base", site); err != nil {
 			log.Panic(err)
 		}
@@ -113,30 +78,32 @@ func (site Site) writeArticles() {
 
 }
 
-func (site Site) writePages() {
+func (site Site) Pages() (pages []*ParsedFile) {
 	query := `
-	SELECT title, slug, content, tags, date, is_page
-	FROM files
-	WHERE is_page = 1
-	`
+		SELECT title, slug, content, tags, date
+		FROM files
+		WHERE is_page =1
+		`
+	rows, err := site.db.connection.Query(query)
+	if err != nil {
+		log.Panic(err)
+	}
+	for rows.Next() {
+		page := ParsedFile{isPage: true}
+		rows.Scan(&page.Title, &page.Slug, &page.Content, &page.tags, &page.Date)
+		pages = append(pages, &page)
+	}
+	return pages
+}
 
+func (site Site) writePages() {
 	// First of all create the pages/ folder if it doesn't exist
 	pagesPath := fmt.Sprintf("%s/pages", site.outputPath)
 	if _, err := os.Stat(pagesPath); os.IsNotExist(err) {
 		os.Mkdir(pagesPath, 0777)
 	}
 
-	rows, err := site.db.connection.Query(query)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	for rows.Next() {
-		var title, slug, content, tags, date string
-		var isPage int
-		rows.Scan(&title, &slug, &content, &tags, &date, &isPage)
-		page := ParsedFile{Title: title, Slug: slug, Content: content, tags: tags, Date: date}
-
+	for _, page := range site.Pages() {
 		filePath := fmt.Sprintf("%s/%s.html", pagesPath, page.Slug)
 
 		template := template.Must(template.ParseFiles("templates/page.html", "templates/base.html"))
@@ -145,7 +112,7 @@ func (site Site) writePages() {
 		if err != nil {
 			log.Panic(err)
 		}
-		site.Page = page
+		site.Page = *page
 		if err := template.ExecuteTemplate(file, "base", site); err != nil {
 			log.Panic(err)
 		}
