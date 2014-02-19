@@ -6,29 +6,37 @@ import (
 	"testing"
 )
 
+// Test that the metadata is generated properly following the Pelican standards
+// for it
 func TestMetadataGeneration(t *testing.T) {
-	content := `---
-date: expected_date
-tags: tag1, tag2
----
+	content := `Title: My super title
+Date: 2010-12-03 10:20
+Tags: thats, awesome
+Slug: my-super-post
 
-This should be out of the metadata
+This is the content of my super blog post.
 `
 
 	pf := ParsedFile{}
 	pf.scanner = bufio.NewScanner(strings.NewReader(content))
-	// Read the first line (because it's done in other function)
-	pf.scanner.Scan()
 
 	pf.parseMetadata()
-	if pf.Date != "expected_date" {
-		t.Errorf("Date is not the expected: %s", pf.Date)
+	if pf.Title != "My super title" {
+		t.Errorf("Title is not the expected: '%s'", pf.Title)
 	}
-	if pf.tags != "tag1, tag2" {
-		t.Errorf("Tags not expected: %s", pf.tags)
+	if pf.Date != "2010-12-03 10:20" {
+		t.Errorf("Date is not the expected: '%s'", pf.Date)
 	}
+	if pf.tags != "thats, awesome" {
+		t.Errorf("Tags is not expected: '%s'", pf.tags)
+	}
+	if pf.Slug != "my-super-post" {
+		t.Errorf("Slug is not expected: '%s'", pf.Slug)
+	}
+
+	// Check that doesn't read too much
 	pf.scanner.Scan()
-	if pf.scanner.Text() != "This should be out of the metadata" {
-		t.Errorf("This line should be here")
+	if pf.scanner.Text() != "This is the content of my super blog post." {
+		t.Errorf("This line should be here!")
 	}
 }

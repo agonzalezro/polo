@@ -8,8 +8,6 @@ I always wanted to travel, so before coming to London I was working in
 Groningen, a beautiful place in Holland with my excolleagues of
 [Paylogic](http://paylogic.com).
 
-![Photo of Alexandre González](../static/me.jpg)
-
 My background is mainly technical, I studied Computer Science in Spain, but at
 some point during my life I was interested in business too, so I created my own
 company which was a complete economic disaster, but, I learn a lot! At that time

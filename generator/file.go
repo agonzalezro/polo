@@ -2,7 +2,6 @@ package generator
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -33,61 +32,74 @@ type ParsedFile struct {
  * The supported metadata for now is:
  *   - tags: going to be transformed to a []string
  *   - date: a string in ISO8601 format
+ *   - slug: the slug for the url
+ *
+ * It's going to return false in case that the file doesn't have metadata.
  */
-func (pf *ParsedFile) parseMetadata() error {
+func (pf *ParsedFile) parseMetadata() bool {
+	hasMetadata := false
+
 	for pf.scanner.Scan() {
 		line := pf.scanner.Text()
-
-		if strings.HasPrefix(line, "---") {
-			pf.scanner.Scan() // Read the last ---
-			return nil
-		}
 
 		metadataSplited := strings.Split(line, ":")
 		key := strings.ToLower(metadataSplited[0])
 		value := strings.Trim(strings.Join(metadataSplited[1:], ":"), " ")
-		switch {
-		case key == "tags":
+
+		switch key {
+		case "tags":
 			pf.tags = value
-		case key == "date":
+			hasMetadata = true
+		case "date":
 			pf.Date = value
+			hasMetadata = true
+		case "slug":
+			pf.Slug = value
+			hasMetadata = true
+		case "title":
+			pf.Title = value
+			hasMetadata = true
+		default:
+			return hasMetadata
 		}
-		// It's possible that : is on the value of the metadata too (example: a date)
 	}
 
-	return errors.New("The metadata section was not properly closed!")
+	return hasMetadata
 }
 
 // Loads the content of the file object from the given filename.
 func (pf *ParsedFile) load(filePath string) {
-	isFirstLine := true
-
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	pf.scanner = bufio.NewScanner(file)
+	if hasMetadata := pf.parseMetadata(); hasMetadata == false {
+		// Rewind the file and reset the scanner
+		file.Seek(0, 0)
+		pf.scanner = bufio.NewScanner(file)
+	} else {
+		// Read the empty line
+		pf.scanner.Scan()
+	}
+
+	isFirstLine := true
 	for pf.scanner.Scan() {
 		line := pf.scanner.Text()
-		if line == "---" {
-			if err := pf.parseMetadata(); err != nil {
-				log.Fatal(err)
+		if isFirstLine == true {
+			if pf.Title == "" {
+				pf.Title = line
 			}
-			continue
-		}
-
-		if isFirstLine {
-			pf.Title = line
-			// TODO: check if there is a slug key on the metadata and don't assign it in that case
-			pf.Slug = utils.Slugify(line)
+			if pf.Slug == "" {
+				pf.Slug = utils.Slugify(line)
+			}
 			pf.scanner.Scan() // We don't want the title underlining
 
 			isFirstLine = false
 		} else {
 			pf.Content += line + "\n"
 		}
-
 	}
 }
 

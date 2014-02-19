@@ -46,20 +46,28 @@ And now, you can go to http://localhost:8000 and see your generated blog.
 Just markdown!
 --------------
 
-**This is going to change soon to be compatible with the [markdown of
-pelican](http://docs.getpelican.com/en/3.1.1/getting_started.html#file-metadata).**
-
 I am using markdown only. Whatever thing that is supported by [blackfriday
 library](https://github.com/russross/blackfriday) is supported here. The only
-difference is that I am adding some metadata to the files. For example, if you
-want to define the date for the file:
+difference is that I am adding some metadata to the files.
 
-    ---
-    date: Monday, 4th April XXYY
-    tags: place, Mancha, name
-    ---
+This metadata is using exactly the same format than the one used on Pelican,
+but we don't care about all of it (if you do, let me know and I can think on
+adding it). Supported tags:
 
-    And here is just the title.
+- title
+- date
+- tags (comma separated)
+- slug
 
-It's really important that you let a line between the ``---`` and the beginning
-of your article. But remember, as I said before, this is going to change soon.
+This is one auto explainable example:
+
+    Title: My super title
+    Date: 2010-12-03 10:20
+    Tags: thats, awesome
+    Slug: my-super-post
+
+    And here is just the content.
+
+In this case we are overriding the title and the slug. If we don't define the
+metadata tags for those two, then we are going to generate them with the first
+line of the content of the file (usually a title).

@@ -4,6 +4,9 @@ all:
 	# Build polo
 	make clean
 	make link
+	make build
+
+build:
 	GOPATH=$(shell pwd) go get github.com/agonzalezro/polo
 
 clean:
