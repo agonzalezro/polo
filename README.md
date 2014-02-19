@@ -20,19 +20,26 @@ How to use it
 -------------
 
 For now I am not providing binaries, you will need to compile it yourself, but
-you can use ``build.sh``:
+you can use the ``Makefile`` included:
 
-    $ rm bin/polo;./build.sh;bin/polo -help
-      Usage of bin/polo:
-        -config="config.json": the settings file to create your site.
-        -input=".": path to your articles source files.
-        -output=".": path where you want to creat the html files.
+    $ make
+
+It will generate the file ``bin/polo``:
+
+    $ bin/polo -help
+    Usage of bin/polo:
+      -config="config.json": the settings file to create your site.
+      -input=".": path to your articles source files.
+      -output=".": path where you want to creat the html files.
 
 If you want try it with the examples:
 
-    $ bin/polo -input examples -output /tmp
+    $ rm /tmp/db.sqlite;bin/polo -input examples -output /tmp
     $ cd /tmp
     $ python -m SimpleHTTPServer
+
+**Note**: the ``rm /tmp/db.sqlite`` is because of a bug. I can not run the
+database in memory yet, so, you will need to manually delete this file.
 
 And now, you can go to http://localhost:8000 and see your generated blog.
 

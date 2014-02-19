@@ -1,4 +1,4 @@
-package polo
+package generator
 
 import (
 	"bufio"
@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agonzalezro/polo/polo/utils"
+	"github.com/agonzalezro/polo/generator/utils"
 	"github.com/russross/blackfriday"
 )
 

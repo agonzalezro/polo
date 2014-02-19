@@ -1,4 +1,4 @@
-package polo
+package generator
 
 import (
 	"fmt"

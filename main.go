@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/agonzalezro/polo/polo"
+	"github.com/agonzalezro/polo/generator"
 )
 
 var (
@@ -21,9 +21,9 @@ func init() {
 func main() {
 	flag.Parse()
 
-	db := polo.GetDB()
+	db := generator.GetDB()
 	db.Fill(inputPath)
 
-	site := polo.NewSite(*db, polo.GetConfig(configFile), outputPath)
+	site := generator.NewSite(*db, generator.GetConfig(configFile), outputPath)
 	site.Write()
 }
