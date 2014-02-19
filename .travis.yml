@@ -6,4 +6,6 @@ go:
  - tip
 
 script:
- - sh -c 'cd src/github.com/agonzalezro/polo && go test -v ./...'
+ - export GOPATH=`pwd`
+ - cd src/github.com/agonzalezro/polo
+ - go test -v ./...
