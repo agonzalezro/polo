@@ -22,15 +22,15 @@ How to use it
 For now I am not providing binaries, you will need to compile it yourself, but
 you can use ``build.sh``:
 
-    $ rm bin/go-polo;./build.sh;bin/go-polo -help
-      Usage of bin/go-polo:
+    $ rm bin/polo;./build.sh;bin/polo -help
+      Usage of bin/polo:
         -config="config.json": the settings file to create your site.
         -input=".": path to your articles source files.
         -output=".": path where you want to creat the html files.
 
 If you want try it with the examples:
 
-    $ bin/go-polo -input examples -output /tmp
+    $ bin/polo -input examples -output /tmp
     $ cd /tmp
     $ python -m SimpleHTTPServer
 

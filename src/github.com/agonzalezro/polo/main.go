@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/agonzalezro/go-polo/polo"
+	"github.com/agonzalezro/polo/polo"
 )
 
 var (

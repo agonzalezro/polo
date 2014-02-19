@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agonzalezro/go-polo/polo/utils"
+	"github.com/agonzalezro/polo/polo/utils"
 	"github.com/russross/blackfriday"
 )
 
