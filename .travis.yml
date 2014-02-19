@@ -1,11 +1,8 @@
 language: go
 go:
- - 1.1
- - 1.2
  - release
- - tip
 
 script:
- - export GOPATH=`pwd`
+ - export GOPATH=$TRAVIS_BUILD_DIR
  - cd src/github.com/agonzalezro/polo
  - go test -v ./...
