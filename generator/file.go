@@ -19,6 +19,7 @@ type ParsedFile struct {
 	Slug    string
 	Content string
 	isPage  bool
+	status  string // To keep track of the drafts
 
 	tags string
 	Date string
@@ -59,6 +60,9 @@ func (pf *ParsedFile) parseMetadata() bool {
 		case "title":
 			pf.Title = value
 			hasMetadata = true
+		case "status":
+			pf.status = value
+			hasMetadata = true
 		default:
 			return hasMetadata
 		}
@@ -88,6 +92,11 @@ func (pf *ParsedFile) load(filePath string) {
 	for pf.scanner.Scan() {
 		line := pf.scanner.Text()
 		if isFirstLine == true {
+			if line == "" {
+				// Do not read empty lines at the beginning
+				continue
+			}
+
 			if pf.Title == "" {
 				pf.Title = line
 			}
@@ -117,8 +126,8 @@ func (file ParsedFile) Html(content string) template.HTML {
 // Store the file in a "permanent" storage.
 func (file ParsedFile) save(db *DB) error {
 	query := `
-    INSERT INTO files (title, slug, content, tags, date, is_page)
-    VALUES ("%s", "%s", "%s", "%s", "%s", %b)
+    INSERT INTO files (title, slug, content, tags, date, status, is_page)
+    VALUES ("%s", "%s", "%s", "%s", "%s", "%s", %b)
     `
 
 	// SQLite doesn't support booleans :(
@@ -127,7 +136,7 @@ func (file ParsedFile) save(db *DB) error {
 		isPageInt = 1
 	}
 
-	filledQuery := fmt.Sprintf(query, file.Title, file.Slug, file.Content, file.tags, file.Date, isPageInt)
+	filledQuery := fmt.Sprintf(query, file.Title, file.Slug, file.Content, file.tags, file.Date, file.status, isPageInt)
 	if _, err := db.connection.Exec(filledQuery); err != nil {
 		return err
 	}

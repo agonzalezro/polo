@@ -67,7 +67,7 @@ func GetDB() *DB {
 	}
 
 	query := `
-	CREATE table files (title text, slug text, content text, tags text, date text, is_page integer);
+	CREATE table files (title text, slug text, content text, tags text, date text, status text, is_page integer);
 	`
 	if _, err = db.Exec(query); err != nil {
 		log.Panic("%q: %s", err, query)
