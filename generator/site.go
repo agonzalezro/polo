@@ -74,6 +74,7 @@ func (site Site) Articles() (articles []*ParsedFile) {
 		FROM files
 		WHERE is_page = 0
 		AND status != 'draft'
+		ORDER BY date DESC
 		`
 	rows, err := site.db.connection.Query(query)
 	if err != nil {
@@ -111,6 +112,7 @@ func (site Site) Pages() (pages []*ParsedFile) {
 		FROM files
 		WHERE is_page =1
 		AND status != 'draft'
+		ORDER BY date DESC
 		`
 	rows, err := site.db.connection.Query(query)
 	if err != nil {

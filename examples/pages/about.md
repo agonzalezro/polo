@@ -38,4 +38,4 @@ the resources below:
   account](http://github.com/agonzalezro).
 
 * And if you are not bored after all this, please, take a look to my
-* [CV](https://github.com/agonzalezro/Curriculum-Vitae/blob/master/pdfs/cv_alex_gonzalez_en.pdf?raw=true).
+  [CV](https://github.com/agonzalezro/Curriculum-Vitae/blob/master/pdfs/cv_alex_gonzalez_en.pdf?raw=true).

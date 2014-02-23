@@ -83,13 +83,10 @@ func (pf *ParsedFile) load(filePath string) {
 	}
 
 	pf.scanner = bufio.NewScanner(file)
-	if hasMetadata := pf.parseMetadata(); hasMetadata == false {
+	if hasMetadata := pf.parseMetadata(); !hasMetadata {
 		// Rewind the file and reset the scanner
 		file.Seek(0, 0)
 		pf.scanner = bufio.NewScanner(file)
-	} else {
-		// Read the empty line
-		pf.scanner.Scan()
 	}
 
 	isFirstLine := true

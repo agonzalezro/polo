@@ -7,8 +7,7 @@ all:
 	make build
 
 build:
-	export GOPATH=$(shell pwd)
-	go get github.com/agonzalezro/polo
+	GOPATH=$(shell pwd) go get github.com/agonzalezro/polo
 
 clean:
 	# Remove the generated/downloaded stuff
