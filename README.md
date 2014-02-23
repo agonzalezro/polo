@@ -54,10 +54,14 @@ This metadata is using exactly the same format than the one used on Pelican,
 but we don't care about all of it (if you do, let me know and I can think on
 adding it). Supported tags:
 
-- title
-- date
-- tags (comma separated)
-- slug
+- title: if it's not on the metadata info, the first line is going to be used
+  to create it.
+- date: format YYYY-MM-DD hh:mm
+- tags: comma separated.
+- slug: if it is not defined the first line is going to be slugified.
+- status: if it's draft the page is not going to be rendered.
+- summary: an introductory paragraph. It will be empty if the metadata tag is
+  not defined.
 
 This is one auto explainable example:
 
@@ -68,6 +72,4 @@ This is one auto explainable example:
 
     And here is just the content.
 
-In this case we are overriding the title and the slug. If we don't define the
-metadata tags for those two, then we are going to generate them with the first
-line of the content of the file (usually a title).
+In this case we are overriding the title and the slug.

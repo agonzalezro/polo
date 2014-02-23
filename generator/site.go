@@ -70,9 +70,10 @@ func (site Site) Tags() (tags []string) {
 
 func (site Site) Articles() (articles []*ParsedFile) {
 	query := `
-		SELECT title, slug, content, tags, date
+		SELECT title, slug, content, tags, date, summary
 		FROM files
 		WHERE is_page = 0
+		AND status != 'draft'
 		`
 	rows, err := site.db.connection.Query(query)
 	if err != nil {
@@ -80,7 +81,7 @@ func (site Site) Articles() (articles []*ParsedFile) {
 	}
 	for rows.Next() {
 		article := ParsedFile{isPage: false}
-		rows.Scan(&article.Title, &article.Slug, &article.Content, &article.tags, &article.Date)
+		rows.Scan(&article.Title, &article.Slug, &article.Content, &article.tags, &article.Date, &article.Summary)
 		articles = append(articles, &article)
 	}
 	return articles
@@ -106,9 +107,10 @@ func (site Site) writeArticles() {
 
 func (site Site) Pages() (pages []*ParsedFile) {
 	query := `
-		SELECT title, slug, content, tags, date
+		SELECT title, slug, content, tags, date, summary
 		FROM files
 		WHERE is_page =1
+		AND status != 'draft'
 		`
 	rows, err := site.db.connection.Query(query)
 	if err != nil {
@@ -116,7 +118,7 @@ func (site Site) Pages() (pages []*ParsedFile) {
 	}
 	for rows.Next() {
 		page := ParsedFile{isPage: true}
-		rows.Scan(&page.Title, &page.Slug, &page.Content, &page.tags, &page.Date)
+		rows.Scan(&page.Title, &page.Slug, &page.Content, &page.tags, &page.Date, &page.Summary)
 		pages = append(pages, &page)
 	}
 	return pages

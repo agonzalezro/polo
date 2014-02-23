@@ -19,14 +19,9 @@ func (db *DB) Fill(root string) {
 	filepath.Walk(root, db.parseAndSave)
 }
 
-var (
-	articles []ParsedFile
-	pages    []ParsedFile
-)
-
-// Append the paths to an array in case that they are RST files.
+// Append the paths to an array in case that they are markdown files.
 // If there are pages (file inside the folder "pages") it's going to be
-// included in one array, otherwise it's going to be included in other.
+// saved with the value isPage = 1
 func (db *DB) parseAndSave(path string, fileInfo os.FileInfo, err error) error {
 	if err != nil {
 		log.Panic(err)
@@ -45,9 +40,6 @@ func (db *DB) parseAndSave(path string, fileInfo os.FileInfo, err error) error {
 
 		if strings.HasPrefix(path, "pages/") || strings.Index(path, "/pages/") > 0 {
 			file.isPage = true
-			pages = append(pages, file)
-		} else {
-			articles = append(articles, file)
 		}
 
 		if err := file.save(db); err != nil {
@@ -67,7 +59,7 @@ func GetDB() *DB {
 	}
 
 	query := `
-	CREATE table files (title text, slug text, content text, tags text, date text, status text, is_page integer);
+	CREATE table files (title text, slug text, content text, tags text, date text, status text, summary text, is_page integer);
 	`
 	if _, err = db.Exec(query); err != nil {
 		log.Panic("%q: %s", err, query)

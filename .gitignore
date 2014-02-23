@@ -21,8 +21,9 @@ _testmain.go
 
 *.exe
 
-/bin
+bin/
 /src
+/generator/src
 /pkg
 
 /*.html
