@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 type Site struct {
@@ -15,15 +16,21 @@ type Site struct {
 	outputPath string
 
 	Article, Page ParsedFile
+
+	PaginatedArticles []*ParsedFile
+
+	Updated string
 }
 
 func NewSite(db DB, config Config, outputPath string) *Site {
-	return &Site{db: db, Config: config, outputPath: outputPath}
+	updated := time.Now().Format(time.RFC3339)
+	return &Site{db: db, Config: config, outputPath: outputPath, Updated: updated}
 }
 
 // Dump all the site content to the disk
 func (site Site) Write() {
 	site.writeIndex()
+	site.writeFeeds()
 	site.writeArticles()
 	site.writePages()
 }
@@ -41,6 +48,42 @@ func (site Site) writeIndex() {
 	if err := template.ExecuteTemplate(file, "base", site); err != nil {
 		log.Panic(err)
 	}
+}
+
+func (site Site) writeFeeds() {
+	feedsPath := fmt.Sprintf("%s/feeds", site.outputPath)
+	if _, err := os.Stat(feedsPath); os.IsNotExist(err) {
+		os.Mkdir(feedsPath, 0777)
+	}
+
+	// TODO (agonzalezro): write the atom and RSS feeds
+	site.writeAtomFeed(feedsPath)
+	site.writeRSSFeed(feedsPath)
+}
+
+func (site Site) writeAtomFeed(feedsPath string) {
+	path := fmt.Sprintf("%s/all.atom.xml", feedsPath)
+	template := template.Must(template.ParseFiles("templates/atom.xml"))
+
+	file, err := os.Create(path)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	articles := site.Articles()
+	limit := len(articles)
+	if limit > 10 {
+		limit = 10
+	}
+	site.PaginatedArticles = articles[:limit] // TODO: do it inside the function
+	if err := template.Execute(file, site); err != nil {
+		log.Panic(err)
+	}
+}
+
+func (site Site) writeRSSFeed(feedsPath string) {
+	// TODO (agonzalezro): to be implemented if somebody needs it
+	return
 }
 
 func (site Site) Tags() (tags []string) {

@@ -10,6 +10,8 @@ type Config struct {
 	Author string
 	Title  string
 
+	URL string
+
 	PaginationSize int
 
 	DisqusSitename     string

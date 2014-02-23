@@ -27,6 +27,7 @@ bin/
 /pkg
 
 /*.html
-pages/*.html
+/pages/*.html
+/feeds/
 
 .DS_Store
