@@ -26,7 +26,10 @@
 <h2>Comments</h2>
 <div id="disqus_thread"></div>
 <script type="text/javascript">
-  var disqus_shortname = '{{ .Config.DisqusSitename }}';
+  var disqus_shortname = '{{.Config.DisqusSitename}}';
+  // TODO (agonzalezro): Compatibility with my old blog articles
+  // I don't know if it will work for other users
+  var disqus_identifier = '{{.Article.Slug}}.html';
 
   (function() {
     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
