@@ -18,3 +18,8 @@ link:
 	mkdir -p src/github.com/agonzalezro
 	rm src/github.com/agonzalezro/polo
 	ln -s $(shell pwd) src/github.com/agonzalezro/polo
+
+install:
+	mkdir -p $(HOME)/bin
+	rm $(HOME)/bin/polo
+	cp bin/polo $(HOME)/bin
