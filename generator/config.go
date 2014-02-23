@@ -22,7 +22,7 @@ type Config struct {
 func GetConfig(configFile string) Config {
 	file, err := os.Open(configFile)
 	if err != nil {
-		log.Panic(err)
+		log.Panicf("Error opening the configuration file: %s\n%v", configFile, err)
 	}
 
 	decoder := json.NewDecoder(file)
@@ -30,7 +30,7 @@ func GetConfig(configFile string) Config {
 
 	err = decoder.Decode(&config)
 	if err != nil {
-		log.Panic(err)
+		log.Panicf("Error reading the JSON file: %s\n%v", configFile, err)
 	}
 	return *config
 }

@@ -42,11 +42,11 @@ func (site Site) writeIndex() {
 
 	file, err := os.Create(indexFile)
 	if err != nil {
-		log.Panic(err)
+		log.Panicf("Error creating index file: %v", err)
 	}
 
 	if err := template.ExecuteTemplate(file, "base", site); err != nil {
-		log.Panic(err)
+		log.Panicf("Error rendering the template for the index: %v", err)
 	}
 }
 
@@ -67,7 +67,7 @@ func (site Site) writeAtomFeed(feedsPath string) {
 
 	file, err := os.Create(path)
 	if err != nil {
-		log.Panic(err)
+		log.Panicf("Error creating the atom file: %v", err)
 	}
 
 	articles := site.Articles()
@@ -77,7 +77,7 @@ func (site Site) writeAtomFeed(feedsPath string) {
 	}
 	site.PaginatedArticles = articles[:limit] // TODO: do it inside the function
 	if err := template.Execute(file, site); err != nil {
-		log.Panic(err)
+		log.Panicf("Error rendering the template for the atom file: %v", err)
 	}
 }
 
@@ -96,7 +96,7 @@ func (site Site) Tags() (tags []string) {
 	query := "SELECT tags FROM files WHERE is_page = 0"
 	rows, err := site.db.connection.Query(query)
 	if err != nil {
-		log.Panic(err)
+		log.Panicf("Error querying for tags: %v", err)
 	}
 
 	for rows.Next() {
@@ -117,11 +117,11 @@ func (site Site) Articles() (articles []*ParsedFile) {
 		FROM files
 		WHERE is_page = 0
 		AND status != 'draft'
-		ORDER BY date DESC
+		ORDER BY datetime(date) DESC
 		`
 	rows, err := site.db.connection.Query(query)
 	if err != nil {
-		log.Panic(err)
+		log.Panicf("Error querying for articles: %v", err)
 	}
 	for rows.Next() {
 		article := ParsedFile{isPage: false}
@@ -139,11 +139,11 @@ func (site Site) writeArticles() {
 
 		file, err := os.Create(filePath)
 		if err != nil {
-			log.Panic(err)
+			log.Panicf("Error creating the file: %s\n%v", filePath, err)
 		}
 		site.Article = *article
 		if err := template.ExecuteTemplate(file, "base", site); err != nil {
-			log.Panic(err)
+			log.Panicf("Error rendering template for the file: %s\n%v", filePath, err)
 		}
 	}
 
@@ -155,11 +155,11 @@ func (site Site) Pages() (pages []*ParsedFile) {
 		FROM files
 		WHERE is_page =1
 		AND status != 'draft'
-		ORDER BY date DESC
+		ORDER BY datetime(date) DESC
 		`
 	rows, err := site.db.connection.Query(query)
 	if err != nil {
-		log.Panic(err)
+		log.Panicf("Error querying for the pages: %v", err)
 	}
 	for rows.Next() {
 		page := ParsedFile{isPage: true}
@@ -183,11 +183,11 @@ func (site Site) writePages() {
 
 		file, err := os.Create(filePath)
 		if err != nil {
-			log.Panic(err)
+			log.Panicf("Error creating the file: %s\n%v", filePath, err)
 		}
 		site.Page = *page
 		if err := template.ExecuteTemplate(file, "base", site); err != nil {
-			log.Panic(err)
+			log.Panicf("Error rendering the template for the file: %s\n%v", filePath, err)
 		}
 	}
 }

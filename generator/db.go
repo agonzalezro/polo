@@ -24,7 +24,7 @@ func (db *DB) Fill(root string) {
 // saved with the value isPage = 1
 func (db *DB) parseAndSave(path string, fileInfo os.FileInfo, err error) error {
 	if err != nil {
-		log.Panic(err)
+		log.Panicf("Error walking through the path: %s\n%v", path, err)
 	}
 
 	slugsPresence := make(map[string]bool)
@@ -43,7 +43,7 @@ func (db *DB) parseAndSave(path string, fileInfo os.FileInfo, err error) error {
 		}
 
 		if err := file.save(db); err != nil {
-			log.Panic(err)
+			log.Panicf("Error saving the parsed file: %s\n%v", path, err)
 		}
 	}
 
@@ -55,14 +55,14 @@ func (db *DB) parseAndSave(path string, fileInfo os.FileInfo, err error) error {
 func GetDB() *DB {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
-		log.Panic("Impossible to open DB in memory!")
+		log.Panicf("Impossible to open DB in memory!\n%v", err)
 	}
 
 	query := `
 	CREATE table files (title text, slug text, content text, tags text, date text, status text, summary text, is_page integer);
 	`
 	if _, err = db.Exec(query); err != nil {
-		log.Panic("%q: %s", err, query)
+		log.Panicf("Error creating the DB: %v", err)
 		return nil
 	}
 	return &DB{*db}

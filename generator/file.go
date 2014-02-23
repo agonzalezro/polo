@@ -2,7 +2,6 @@ package generator
 
 import (
 	"bufio"
-	"fmt"
 	"html/template"
 	"log"
 	"os"
@@ -128,7 +127,7 @@ func (file ParsedFile) Html(content string) template.HTML {
 func (file ParsedFile) save(db *DB) error {
 	query := `
     INSERT INTO files (title, slug, content, tags, date, status, summary, is_page)
-    VALUES ("%s", "%s", "%s", "%s", "%s", "%s", "%s", %b)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `
 
 	// SQLite doesn't support booleans :(
@@ -137,8 +136,7 @@ func (file ParsedFile) save(db *DB) error {
 		isPageInt = 1
 	}
 
-	filledQuery := fmt.Sprintf(query, file.Title, file.Slug, file.Content, file.tags, file.Date, file.status, file.Summary, isPageInt)
-	if _, err := db.connection.Exec(filledQuery); err != nil {
+	if _, err := db.connection.Exec(query, file.Title, file.Slug, file.Content, file.tags, file.Date, file.status, file.Summary, isPageInt); err != nil {
 		return err
 	}
 	return nil
