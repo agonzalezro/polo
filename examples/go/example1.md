@@ -11,9 +11,9 @@ Subtitle
 
 This is the content of my super blog post.
 
-```go
+`````go
 import foo
-```
+`````
 
 And now some slipsum.com generated text:
 
