@@ -119,7 +119,21 @@ func (pf ParsedFile) Tags() []string {
 
 // Function to be called from the templates. It render safe HTML code.
 func (file ParsedFile) Html(content string) template.HTML {
-	html := blackfriday.MarkdownCommon([]byte(content))
+	// set up the HTML renderer
+	htmlFlags := 0
+	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
+	renderer := blackfriday.HtmlRenderer(htmlFlags, "", "")
+
+	// set up the parser
+	extensions := 0
+	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
+	extensions |= blackfriday.EXTENSION_TABLES
+	extensions |= blackfriday.EXTENSION_FENCED_CODE
+	extensions |= blackfriday.EXTENSION_AUTOLINK
+	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
+	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
+
+	html := blackfriday.Markdown([]byte(content), renderer, extensions)
 	return template.HTML(html)
 }
 

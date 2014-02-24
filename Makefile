@@ -16,10 +16,10 @@ clean:
 link:
 	# Do the funny symbolic links again
 	mkdir -p src/github.com/agonzalezro
-	rm src/github.com/agonzalezro/polo
+	rm -f src/github.com/agonzalezro/polo
 	ln -s $(shell pwd) src/github.com/agonzalezro/polo
 
 install:
 	mkdir -p $(HOME)/bin
-	rm $(HOME)/bin/polo
+	rm -f $(HOME)/bin/polo
 	cp bin/polo $(HOME)/bin
