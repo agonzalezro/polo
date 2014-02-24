@@ -3,10 +3,9 @@ polo
 
 [![Build Status](https://travis-ci.org/agonzalezro/polo.png)](https://travis-ci.org/agonzalezro/polo)
 
-**Disclaimer**: this project is in a really early state. You can generate your
-own blog and navigate between pages but I am sure that you are going to miss
-some other functions. If you want a simple blog, you CAN use it without any
-problem, but if you are looking for something else, this is not for you.
+**Disclaimer**: this project is in a really early state, but don't be scare of
+using it. I am currently using it as the generator for my site:
+http://agonzalezro.github.io and it works!
 
 What's it?
 ----------
