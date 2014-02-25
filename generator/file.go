@@ -19,7 +19,7 @@ type ParsedFile struct {
 	Content string
 	isPage  bool
 	status  string // To keep track of the drafts
-	Summary string
+	summary string
 
 	tags string
 	Date string
@@ -64,7 +64,7 @@ func (pf *ParsedFile) parseMetadata() bool {
 			pf.status = value
 			hasMetadata = true
 		case "summary":
-			pf.Summary = value
+			pf.summary = value
 			hasMetadata = true
 		default:
 			return hasMetadata
@@ -137,6 +137,19 @@ func (file ParsedFile) Html(content string) template.HTML {
 	return template.HTML(html)
 }
 
+func (file ParsedFile) Summary() string {
+	if file.summary != "" {
+		return file.summary
+	}
+	// Avoid empty lines
+	for _, content := range strings.Split(file.Content, "\n\n") {
+		if content != "" {
+			return content
+		}
+	}
+	return ""
+}
+
 // Store the file in a "permanent" storage.
 func (file ParsedFile) save(db *DB) error {
 	query := `
@@ -150,7 +163,7 @@ func (file ParsedFile) save(db *DB) error {
 		isPageInt = 1
 	}
 
-	if _, err := db.connection.Exec(query, file.Title, file.Slug, file.Content, file.tags, file.Date, file.status, file.Summary, isPageInt); err != nil {
+	if _, err := db.connection.Exec(query, file.Title, file.Slug, file.Content, file.tags, file.Date, file.status, file.summary, isPageInt); err != nil {
 		return err
 	}
 	return nil

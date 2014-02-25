@@ -4,20 +4,18 @@
 
 {{define "content"}}
 {{if .Articles}}
-<h1>Archive</h1>
+{{$article := index .Articles 0}}
+<h1>{{$article.Title}}</h1>
+{{$article.Html $article.Summary}}
+<p><a class="btn btn-primary" href="{{$article.Slug}}.html">Read more...</a></p>
+
+<h1>Old stuff</h1>
 <ul>
   {{range $_, $article := .Articles}}
   <li><a href="{{$article.Slug}}.html">{{$article.Title}}</a></li>
   {{end}}
 </ul>
-{{end}}
-
-{{if .Tags}}
-<h1>Tags</h1>
-<ul>
-  {{range $_, $tag := .Tags}}
-  <li>{{$tag}}</li>
-  {{end}}
-</ul>
+{{else}}
+<h1>Nothing to see here!</h1>
 {{end}}
 {{end}}

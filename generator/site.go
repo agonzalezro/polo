@@ -125,7 +125,33 @@ func (site Site) Articles() (articles []*ParsedFile) {
 	}
 	for rows.Next() {
 		article := ParsedFile{isPage: false}
-		rows.Scan(&article.Title, &article.Slug, &article.Content, &article.tags, &article.Date, &article.Summary)
+		rows.Scan(&article.Title, &article.Slug, &article.Content, &article.tags, &article.Date, &article.summary)
+		articles = append(articles, &article)
+	}
+	return articles
+}
+
+// TODO (agonzalezro): possibly duplicated, but the query params are different :(
+func (site Site) ArticlesByTag(tag string) (articles []*ParsedFile) {
+	// You can hit me for this ugly hack
+	query := `
+        SELECT title, slug, content, tags, date, summary
+        FROM files
+        WHERE is_page = 0
+        AND status != 'draft'
+        AND tags LIKE "%"||?||",%"
+        OR tags LIKE "%, "||?||"%"
+        OR tags LIKE "%,"||?||"%"
+        OR tags = ?
+        ORDER BY datetime(date) DESC
+        `
+	rows, err := site.db.connection.Query(query, tag, tag, tag, tag)
+	if err != nil {
+		log.Panicf("Error querying for articles with tag '%s': %v", tag, err)
+	}
+	for rows.Next() {
+		article := ParsedFile{isPage: false}
+		rows.Scan(&article.Title, &article.Slug, &article.Content, &article.tags, &article.Date, &article.summary)
 		articles = append(articles, &article)
 	}
 	return articles
@@ -153,7 +179,7 @@ func (site Site) Pages() (pages []*ParsedFile) {
 	query := `
 		SELECT title, slug, content, tags, date, summary
 		FROM files
-		WHERE is_page =1
+		WHERE is_page = 1
 		AND status != 'draft'
 		ORDER BY datetime(date) DESC
 		`
@@ -163,7 +189,7 @@ func (site Site) Pages() (pages []*ParsedFile) {
 	}
 	for rows.Next() {
 		page := ParsedFile{isPage: true}
-		rows.Scan(&page.Title, &page.Slug, &page.Content, &page.tags, &page.Date, &page.Summary)
+		rows.Scan(&page.Title, &page.Slug, &page.Content, &page.tags, &page.Date, &page.summary)
 		pages = append(pages, &page)
 	}
 	return pages

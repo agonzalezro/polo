@@ -26,11 +26,24 @@
           </button>
           <a class="navbar-brand" href="/">{{.Config.Title}}</a>
         </div>
-        {{if .Pages}}
+        {{if or .Pages .Tags}}
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             {{range $_, $page := .Pages}}
             <li><a href="pages/{{$page.Slug}}.html">{{$page.Title}}</a></li>
+            {{end}}
+            {{if .Tags}}
+            <li class="dropdown">
+            <a href="#" data-toggle="dropdown">Tags <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              {{range $_, $tag := .Tags}}
+              {{$articles := $.ArticlesByTag $tag}}
+              <li>
+              <a href="#">{{$tag}} ({{len $articles}})</a>
+              </li>
+              {{end}}
+              </ul>
+            </li>
             {{end}}
           </ul>
         </div>
