@@ -15,11 +15,12 @@ type Site struct {
 	Config     Config
 	outputPath string
 
-	Article, Page ParsedFile
-
-	PaginatedArticles []*ParsedFile
-
 	Updated string
+
+	// Temporal stuff just for that page being rendered
+	Article, Page     ParsedFile
+	Tag               string
+	PaginatedArticles []*ParsedFile
 }
 
 func NewSite(db DB, config Config, outputPath string) *Site {
@@ -33,6 +34,7 @@ func (site Site) Write() {
 	site.writeFeeds()
 	site.writeArticles()
 	site.writePages()
+	site.writeTags()
 }
 
 func (site Site) writeIndex() {
@@ -47,6 +49,30 @@ func (site Site) writeIndex() {
 
 	if err := template.ExecuteTemplate(file, "base", site); err != nil {
 		log.Panicf("Error rendering the template for the index: %v", err)
+	}
+}
+
+func (site Site) writeTags() {
+	// First of all create the tags/ folder if it doesn't exist
+	pagesPath := fmt.Sprintf("%s/tags", site.outputPath)
+	if _, err := os.Stat(pagesPath); os.IsNotExist(err) {
+		os.Mkdir(pagesPath, 0777)
+	}
+
+	for _, tag := range site.Tags() {
+		tagFile := fmt.Sprintf("%s/tags/%s.html", site.outputPath, tag)
+
+		template := template.Must(template.ParseFiles("templates/tag.html", "templates/base.html"))
+
+		file, err := os.Create(tagFile)
+		if err != nil {
+			log.Panicf("Error creating the tag '%s' file: %v", tag, err)
+		}
+
+		site.Tag = tag
+		if err := template.ExecuteTemplate(file, "base", site); err != nil {
+			log.Panicf("Error rendering the template for the tag '%s': %v", tag, err)
+		}
 	}
 }
 

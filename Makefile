@@ -11,7 +11,7 @@ build:
 
 clean:
 	# Remove the generated/downloaded stuff
-	rm -Rf feeds pages *.html src/agonzalezro bin pkg
+	rm -Rf tags feeds pages *.html src/agonzalezro bin pkg
 
 link:
 	# Do the funny symbolic links again
