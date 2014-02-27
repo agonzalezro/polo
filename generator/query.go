@@ -10,9 +10,9 @@ import (
 func getQueryInterface(isPage bool, args ...string) []interface{} {
 	// This funny casting is needed to call the sql .Query()
 	sqlArgs := make([]interface{}, len(args)+1)
-	sqlArgs[0] = interface{}(0)
+	sqlArgs[0] = 0
 	if isPage {
-		sqlArgs[0] = interface{}(1)
+		sqlArgs[0] = 1
 	}
 	for i, v := range args {
 		sqlArgs[i+1] = interface{}(v)
