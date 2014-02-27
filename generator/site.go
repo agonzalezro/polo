@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
@@ -164,6 +165,7 @@ func (site Site) Tags() (tags []string) {
 		}
 	}
 
+	sort.Strings(tags)
 	return tags
 }
 
@@ -183,6 +185,7 @@ func (site Site) Categories() (categories []string) {
 		categories = append(categories, category)
 	}
 
+	sort.Strings(categories)
 	return categories
 }
 
