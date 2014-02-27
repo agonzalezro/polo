@@ -2,6 +2,7 @@ package generator
 
 import (
 	"bufio"
+	"fmt"
 	"html/template"
 	"log"
 	"os"
@@ -50,7 +51,9 @@ func (pf *ParsedFile) parseMetadata() bool {
 
 		switch key {
 		case "tags":
-			pf.tags = value
+			// Remove all the spaces between comma and tag and
+			// add one comma at the baginning other at the end, this will make the queryin much simpler
+			pf.tags = fmt.Sprintf(",%s,", strings.Replace(value, " ", "", -1))
 			hasMetadata = true
 		case "date":
 			pf.Date = value

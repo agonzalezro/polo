@@ -217,13 +217,10 @@ func (site Site) ArticlesByTag(tag string) (articles []*ParsedFile) {
         FROM files
         WHERE is_page = 0
         AND status != 'draft'
-        AND tags LIKE "%"||?||",%"
-        OR tags LIKE "%, "||?||"%"
-        OR tags LIKE "%,"||?||"%"
-        OR tags = ?
+        AND tags LIKE "%,"||?||",%"
         ORDER BY datetime(date) DESC
         `
-	rows, err := site.db.connection.Query(query, tag, tag, tag, tag)
+	rows, err := site.db.connection.Query(query, tag)
 	if err != nil {
 		log.Panicf("Error querying for articles with tag '%s': %v", tag, err)
 	}
