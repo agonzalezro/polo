@@ -13,11 +13,9 @@
     {{if $article.Date}}
     <updated>{{$article.Date}}</updated>
     {{end}}
-    <summary>{{if $article.Summary}}
-    {{$article.Summary}}
-    {{else}}
-    {{$article.Html $article.Content}}
-    {{end}}</summary>
+    <summary>
+      {{$article.Html $article.Summary}}
+    </summary>
     <author>
       <name>{{$.Config.Author}}</name>
     </author>

@@ -59,7 +59,7 @@ func GetDB() *DB {
 	}
 
 	query := `
-	CREATE table files (title text, slug text, content text, tags text, date text, status text, summary text, is_page integer);
+	CREATE table files (title text, slug text, content text, category text, tags text, date text, status text, summary text, is_page integer);
 	`
 	if _, err = db.Exec(query); err != nil {
 		log.Panicf("Error creating the DB: %v", err)

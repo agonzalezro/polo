@@ -26,7 +26,7 @@
           </button>
           <a class="navbar-brand" href="/">{{.Config.Title}}</a>
         </div>
-        {{if or .Pages .Tags}}
+        {{if or .Pages .Tags .Categories}}
         <div class="navbar-collapse collapse">
           {{if .Pages}}
           <ul class="nav navbar-nav">
@@ -35,44 +35,59 @@
             {{end}}
           </ul>
           {{ end }}
-          {{if .Tags}}
+          {{if or .Categories .Tags }}
           <ul class="nav navbar-nav navbar-right">
+            {{if .Categories}}
+            <li class="dropdown">
+            <a href="#" data-toggle="dropdown">Categories <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              {{range $_, $category := .Categories}}
+              {{$articles := $.ArticlesByCategory $category}}
+              <li>
+              <a href="/category/{{$category}}.html">{{$category}} ({{len $articles}})</a>
+              </li>
+              {{end}}
+            </ul>
+            </li>
+            {{end}}
+            {{if .Tags}}
             <li class="dropdown">
             <a href="#" data-toggle="dropdown">Tags <b class="caret"></b></a>
             <ul class="dropdown-menu">
               {{range $_, $tag := .Tags}}
               {{$articles := $.ArticlesByTag $tag}}
               <li>
-              <a href="/tags/{{$tag}}.html">{{$tag}} ({{len $articles}})</a>
+              <a href="/tag/{{$tag}}.html">{{$tag}} ({{len $articles}})</a>
               </li>
               {{end}}
             </ul>
             </li>
+            {{end}}
           </ul>
           {{end}}
         </div>
         {{end}}
       </div>
-      </div>
+    </div>
 
-      <div class="container col-lg-8 col-lg-offset-2">
-        {{template "content" .}}
-      </div>
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-      <script src="//getbootstrap.com/dist/js/bootstrap.min.js"></script>
-      {{if .Config.GoogleAnalyticsId}}
-      <script type="text/javascript">
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', '{{.Config.GoogleAnalyticsId}}']);
-        _gaq.push(['_trackPageview']);
+    <div class="container col-lg-8 col-lg-offset-2">
+      {{template "content" .}}
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//getbootstrap.com/dist/js/bootstrap.min.js"></script>
+    {{if .Config.GoogleAnalyticsId}}
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', '{{.Config.GoogleAnalyticsId}}']);
+      _gaq.push(['_trackPageview']);
 
-        (function() {
-          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-          ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-        })();
-      </script>
-      {{end}}
-    </body>
-  </html>
-  {{end}}
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+    {{end}}
+  </body>
+</html>
+{{end}}
