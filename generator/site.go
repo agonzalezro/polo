@@ -143,9 +143,9 @@ func (site Site) writeRSSFeed(feedsPath string) {
 func (site Site) Tags() (tags []string) {
 	// Not optimal, but it does the job
 	var (
-		seenList   map[string]bool
 		storedTags string
 	)
+	seenList := make(map[string]bool)
 
 	query := "SELECT tags FROM files WHERE is_page = 0"
 	rows, err := site.db.connection.Query(query)
@@ -156,8 +156,10 @@ func (site Site) Tags() (tags []string) {
 	for rows.Next() {
 		rows.Scan(&storedTags)
 		for _, tag := range strings.Split(storedTags, ",") {
+			tag = strings.TrimSpace(tag)
 			if _, seen := seenList[tag]; !seen && tag != "" {
-				tags = append(tags, strings.TrimSpace(tag))
+				seenList[tag] = true
+				tags = append(tags, tag)
 			}
 		}
 	}
@@ -167,11 +169,10 @@ func (site Site) Tags() (tags []string) {
 
 func (site Site) Categories() (categories []string) {
 	var (
-		seenList map[string]bool
 		category string
 	)
 
-	query := `SELECT category FROM files WHERE is_page = 0 AND category != ""`
+	query := `SELECT DISTINCT category FROM files WHERE is_page = 0 AND category != ""`
 	rows, err := site.db.connection.Query(query)
 	if err != nil {
 		log.Panic("Error query for categories: %v", err)
@@ -179,9 +180,7 @@ func (site Site) Categories() (categories []string) {
 
 	for rows.Next() {
 		rows.Scan(&category)
-		if _, seen := seenList[category]; !seen {
-			categories = append(categories, category)
-		}
+		categories = append(categories, category)
 	}
 
 	return categories
