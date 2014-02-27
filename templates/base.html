@@ -44,7 +44,7 @@
               {{range $_, $category := .Categories}}
               {{$articles := $.ArticlesByCategory $category}}
               <li>
-              <a href="/category/{{$category}}.html"><span class="badge">{{len $articles}}</span> {{$category}}</a>
+              <a href="/category/{{$category}}.html">{{$category}} <span class="badge pull-right">{{len $articles}}</span></a>
               </li>
               {{end}}
             </ul>
@@ -57,7 +57,7 @@
               {{range $_, $tag := .Tags}}
               {{$articles := $.ArticlesByTag $tag}}
               <li>
-              <a href="/tag/{{$tag}}.html"><span class="badge">{{len $articles}}</span> {{$tag}}</a>
+              <a href="/tag/{{$tag}}.html">{{$tag}} <span class="badge pull-right">{{len $articles}}</span></a>
               </li>
               {{end}}
             </ul>
