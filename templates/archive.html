@@ -1,0 +1,13 @@
+{{define "title"}}
+Archive | {{.Config.Title}}
+{{end}}
+
+{{define "content"}}
+<h1>Archive</h1>
+<dl class="dl-horizontal">
+  {{range $_, $article := .Articles}}
+  <dt>{{$article.Date}}</dt>
+  <dd><a href="/{{$article.Slug}}.html">{{$article.Title}}</a></dd>
+  {{end}}
+</dl>
+{{end}}

@@ -26,10 +26,14 @@
           </button>
           <a class="navbar-brand" href="/">{{.Config.Title}}</a>
         </div>
-        {{if or .Pages .Tags .Categories}}
+        {{/* TODO: this ifs need to change to know if it needs to show something or not. It depends of the configs now too. */}}
+        {{if or .Pages .Tags .Categories .Config.ShowArchive}}
         <div class="navbar-collapse collapse">
-          {{if .Pages}}
+          {{if or .Pages .Config.ShowArchive}}
           <ul class="nav navbar-nav">
+            {{if .Config.ShowArchive}}
+            <li><a href="/archives.html">Archive</a></li>
+            {{end}}
             {{range $_, $page := .Pages}}
             <li><a href="/pages/{{$page.Slug}}.html">{{$page.Title}}</a></li>
             {{end}}
@@ -37,7 +41,7 @@
           {{ end }}
           {{if or .Categories .Tags }}
           <ul class="nav navbar-nav navbar-right">
-            {{if .Categories}}
+            {{if and .Config.ShowCategories .Categories}}
             <li class="dropdown">
             <a href="#" data-toggle="dropdown">Categories <b class="caret"></b></a>
             <ul class="dropdown-menu">
@@ -50,7 +54,7 @@
             </ul>
             </li>
             {{end}}
-            {{if .Tags}}
+            {{if and .Config.ShowTags .Tags}}
             <li class="dropdown">
             <a href="#" data-toggle="dropdown">Tags <b class="caret"></b></a>
             <ul class="dropdown-menu">

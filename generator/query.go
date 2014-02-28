@@ -20,10 +20,14 @@ func getQueryInterface(isPage bool, args ...string) []interface{} {
 	return sqlArgs
 }
 
-func (site Site) Query(isPage bool, where string, args ...string) (files []*ParsedFile) {
+func (site Site) Query(isPage bool, where string, page int, args ...string) (files []*ParsedFile) {
 	// In case that a where clausule needs to be added, add the AND at the beginning
 	if where != "" {
 		where = fmt.Sprintf("AND %s", where)
+	}
+	limitAndOffset := ""
+	if page >= 0 {
+		limitAndOffset = fmt.Sprintf("LIMIT %d OFFSET %d", site.Config.PaginationSize, (page-1)*site.Config.PaginationSize)
 	}
 	query := fmt.Sprintf(`
         SELECT title, slug, content, category, tags, date, summary
@@ -32,7 +36,8 @@ func (site Site) Query(isPage bool, where string, args ...string) (files []*Pars
         AND status != 'draft'
         %s
         ORDER BY datetime(date) DESC
-    `, where)
+        %s
+    `, where, limitAndOffset)
 
 	sqlArgs := getQueryInterface(isPage, args...)
 	rows, err := site.db.connection.Query(query, sqlArgs...)
@@ -49,10 +54,10 @@ func (site Site) Query(isPage bool, where string, args ...string) (files []*Pars
 	return files
 }
 
-func (site Site) QueryArticles(where string, args ...string) []*ParsedFile {
-	return site.Query(false, where, args...)
+func (site Site) QueryArticles(where string, page int, args ...string) []*ParsedFile {
+	return site.Query(false, where, page, args...)
 }
 
-func (site Site) QueryPages(where string, args ...string) []*ParsedFile {
-	return site.Query(true, where, args...)
+func (site Site) QueryPages() []*ParsedFile {
+	return site.Query(true, "", -1)
 }

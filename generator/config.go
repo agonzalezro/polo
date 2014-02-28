@@ -12,6 +12,10 @@ type Config struct {
 
 	URL string
 
+	ShowArchive    bool
+	ShowCategories bool
+	ShowTags       bool
+
 	PaginationSize int
 
 	DisqusSitename     string

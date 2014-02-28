@@ -5,8 +5,8 @@
   <link href="{{.Config.URL}}" />
   <updated>{{.Updated}}</updated>
 
-  {{if .PaginatedArticles}}
-  {{range $_, $article := .PaginatedArticles}}
+  {{if .FeedArticles}}
+  {{range $_, $article := .FeedArticles}}
   <entry>
     <title>{{$article.Title}}</title>
     <link href="{{$.Config.URL}}/{{$article.Slug}}.html" />

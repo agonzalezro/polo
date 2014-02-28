@@ -3,14 +3,12 @@ polo
 
 [![Build Status](https://travis-ci.org/agonzalezro/polo.png)](https://travis-ci.org/agonzalezro/polo)
 
-**Disclaimer**: this project is in a really early state, but don't be scare of
-using it. I am currently using it as the generator for my site:
-http://agonzalezro.github.io and it works!
-
 What's it?
 ----------
 
 polo is a static blog rendering tool created with Golang.
+
+I'm happily using it on my blog: http://agonzalezro.github.io, which means that works fine :)
 
 Yes, I know that there a lot of them out there but I just want mine to learn a
 little bit of Go coding.
@@ -72,3 +70,25 @@ This is one auto explainable example:
     And here is just the content.
 
 In this case we are overriding the title and the slug.
+
+Configuration
+-------------
+
+An example configuration can be found on the file `config.json`:
+https://github.com/agonzalezro/polo/blob/master/config.json
+
+This is what you can configure there:
+
+- **author**: if it's not override with the Metadata (not implemented yet) it's
+  the name that is going to be shown on the articles.
+- **title**: title of the blog, for the `<title>` element and the header.
+- **url**: sometimes the full url is needed.
+- **show(Archive|Categories|Tags)**: if it's true the pages are going to be
+  created and the links are going to be added.
+- **paginationSize**: set it to -1 if you want to show all the posts.
+
+### 3rd party
+
+- **disqusSitename**: if you want comments on your blog.
+- **googleAnalyticsId**: the Google Analytics ID.
+- **sharethisPublisher**: it's not implemented yet.
