@@ -1,8 +1,7 @@
-// TODO: THIS IS THE SH*$#ST PIECE OF CODE THAT I MADE IN AGES: take some time
-// to refactor ASAP
 package generator
 
 import (
+	"fmt"
 	"log"
 	"sort"
 	"strings"
@@ -18,10 +17,12 @@ type Site struct {
 	Updated string
 
 	// Temporal stuff just for that page being rendered
-	Article, Page     ParsedFile
-	Tag               string
-	Category          string
-	PaginatedArticles []*ParsedFile
+	Article, Page ParsedFile
+	Tag           string
+	Category      string
+	FeedArticles  []*ParsedFile
+	PageNumber    int
+	NumberOfPages int
 }
 
 func NewSite(db DB, config Config, outputPath string) *Site {
@@ -54,6 +55,36 @@ func (site Site) Tags() (tags []string) {
 	return tags
 }
 
+// ArrayOfPages is a dirty hack because we can not iterate over an integer on
+// the template
+func (site Site) ArrayOfPages() (pages []int) {
+	for i := 1; i < site.getNumberOfPages()+1; i++ {
+		pages = append(pages, i)
+	}
+	return pages
+}
+
+func (site Site) GetPreviousPageSlug(page int) (slug string) {
+	switch page {
+	case 1:
+		slug = "#"
+	case 2:
+		slug = "/index.html"
+	default:
+		slug = fmt.Sprintf("/index%d.html", page-1)
+
+	}
+	return slug
+}
+
+func (site Site) GetNextPageSlug(page int) (slug string) {
+	if page == site.NumberOfPages {
+		return "#"
+	}
+
+	return fmt.Sprintf("/index%d.html", page+1)
+}
+
 func (site Site) Categories() (categories []string) {
 	var category string
 
@@ -73,18 +104,23 @@ func (site Site) Categories() (categories []string) {
 }
 
 func (site Site) Articles() (articles []*ParsedFile) {
-	return site.QueryArticles("")
+	return site.QueryArticles("", -1)
+}
+
+func (site Site) ArticlesByPage(page int) (articles []*ParsedFile) {
+	articles = site.QueryArticles("", page)
+	return articles
 }
 
 func (site Site) ArticlesByTag(tag string) (articles []*ParsedFile) {
 	// Concatenation from the hell
-	return site.QueryArticles("tags LIKE \"%,\"||?||\",%\"", tag)
+	return site.QueryArticles("tags LIKE \"%,\"||?||\",%\"", -1, tag)
 }
 
 func (site Site) ArticlesByCategory(category string) (articles []*ParsedFile) {
-	return site.QueryArticles("category = ?", category)
+	return site.QueryArticles("category = ?", -1, category)
 }
 
 func (site Site) Pages() (pages []*ParsedFile) {
-	return site.QueryPages("")
+	return site.QueryPages()
 }

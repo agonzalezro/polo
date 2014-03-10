@@ -3,19 +3,70 @@
 {{end}}
 
 {{define "content"}}
-{{if .Articles}}
-{{$article := index .Articles 0}}
-<h1>{{$article.Title}}</h1>
-{{$article.Html $article.Summary}}
-<p><a class="btn btn-primary" href="{{$article.Slug}}.html">Read more...</a></p>
+{{if .ArticlesByPage .PageNumber}}
 
-<h1>Old stuff</h1>
-<ul>
-  {{range $_, $article := .Articles}}
-  <li><a href="{{$article.Slug}}.html">{{$article.Title}}</a></li>
-  {{end}}
-</ul>
+{{range $_, $article := .ArticlesByPage .PageNumber}}
+<article>
+<h1>{{$article.Title}}</h1>
+
+<p>
+{{if $.Config.Author }}
+<span class="label label-default">by {{$.Config.Author}}</span>
+{{end}}
+
+{{if $article.Date}}
+<span class="label label-default">{{$article.Date}}</span>
+{{end}}
+
+{{if $article.Category}}
+<a class="label label-success" href="/category/{{$article.Category}}.html">{{$article.Category}}</a>
+{{end}}
+
+{{if $article.Tags}}
+{{range $_, $tag := $article.Tags}}
+<a class="label label-info" href="/tag/{{$tag}}.html">{{$tag}}</a>
+{{end}}
+{{end}}
+</p>
+
+{{$article.Html $article.Content}}
+<p class="text-right"><a class="btn btn-default" href="{{$article.Slug}}.html#disqus_thread">Leave a comment!</a></p>
+</article>
+<hr>
+{{end}}
+
 {{else}}
 <h1>Nothing to see here!</h1>
+<hr>
 {{end}}
-{{end}}
+
+{{if .NumberOfPages}}
+<div class="text-center"><ul class="pagination">
+
+    <li class="
+    {{if eq $.PageNumber 1}}
+    disabled
+    {{end}}
+    ">
+    <a href="{{$.GetPreviousPageSlug $.PageNumber}}">&laquo;</a>
+    </li>
+
+    {{range $_, $page := .ArrayOfPages}}
+    <li {{if eq $page $.PageNumber}}class="active"{{end}}>
+    <a href="/index{{if ne $page 1}}{{$page}}{{end}}.html">
+      {{$page}}
+    </a>
+    </li>
+    {{end}} {{/* range */}}
+
+    <li class="
+    {{if eq $.PageNumber $.NumberOfPages}}
+    disabled
+    {{end}}
+    ">
+    <a href="{{$.GetNextPageSlug $.PageNumber}}">&raquo;</a>
+    </li>
+
+</ul></div>
+{{end}} {{/* if */}}
+{{end}} {{/* content */}}

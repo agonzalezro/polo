@@ -4,7 +4,11 @@
 
   "url": "http://agonzalezro.github.io",
 
-  "paginationSize": 0,
+  "showArchive": true,
+  "showCategories": true,
+  "showTags": true,
+
+  "paginationSize": 2,
 
   "disqusSitename": "agonzalezro",
   "googleAnalyticsId": "UA-35984509-1",
