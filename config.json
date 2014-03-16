@@ -3,6 +3,7 @@
   "title": "agonzalezro.github.io",
 
   "url": "http://agonzalezro.github.io",
+  "favicon": "/static/favicon.ico",
 
   "showArchive": true,
   "showCategories": true,

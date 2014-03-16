@@ -10,7 +10,8 @@ type Config struct {
 	Author string
 	Title  string
 
-	URL string
+	URL     string
+	Favicon string
 
 	ShowArchive    bool
 	ShowCategories bool

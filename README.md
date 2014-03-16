@@ -88,6 +88,7 @@ This is what you can configure there:
 - **show(Archive|Categories|Tags)**: if it's true the pages are going to be
   created and the links are going to be added.
 - **paginationSize**: set it to -1 if you want to show all the posts.
+- **favicon**: the favicon path if you have one.
 
 ### 3rd party
 
