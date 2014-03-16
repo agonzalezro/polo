@@ -59,6 +59,7 @@ adding it). Supported tags:
 - **status**: if it's draft the page is not going to be rendered.
 - **summary**: an introductory paragraph. It will be empty if the metadata tag
   is not defined.
+- **author**: this will override the default author in the config file.
 
 This is one auto explainable example:
 
@@ -66,6 +67,7 @@ This is one auto explainable example:
     Date: 2010-12-03 10:20
     Tags: thats, awesome
     Slug: my-super-post
+    Author: Federico
 
     And here is just the content.
 
@@ -79,8 +81,8 @@ https://github.com/agonzalezro/polo/blob/master/config.json
 
 This is what you can configure there:
 
-- **author**: if it's not override with the Metadata (not implemented yet) it's
-  the name that is going to be shown on the articles.
+- **author**: if it's not override with the Metadata it's the name that is
+  going to be shown on the articles.
 - **title**: title of the blog, for the `<title>` element and the header.
 - **url**: sometimes the full url is needed.
 - **show(Archive|Categories|Tags)**: if it's true the pages are going to be

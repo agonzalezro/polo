@@ -15,6 +15,7 @@ import (
 type ParsedFile struct {
 	Metadata map[string]string
 
+	Author  string
 	Title   string
 	Slug    string
 	Content string
@@ -69,6 +70,9 @@ func (pf *ParsedFile) parseMetadata() bool {
 			hasMetadata = true
 		case "summary":
 			pf.summary = value
+			hasMetadata = true
+		case "author":
+			pf.Author = value
 			hasMetadata = true
 		default:
 			return hasMetadata
@@ -162,8 +166,8 @@ func (file ParsedFile) Summary() string {
 // Store the file in a "permanent" storage.
 func (file ParsedFile) save(db *DB) error {
 	query := `
-    INSERT INTO files (title, slug, content, category, tags, date, status, summary, is_page)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO files (author, title, slug, content, category, tags, date, status, summary, is_page)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 
 	// SQLite doesn't support booleans :(
@@ -172,7 +176,7 @@ func (file ParsedFile) save(db *DB) error {
 		isPageInt = 1
 	}
 
-	if _, err := db.connection.Exec(query, file.Title, file.Slug, file.Content, file.Category, file.tags, file.Date, file.status, file.summary, isPageInt); err != nil {
+	if _, err := db.connection.Exec(query, file.Author, file.Title, file.Slug, file.Content, file.Category, file.tags, file.Date, file.status, file.summary, isPageInt); err != nil {
 		return err
 	}
 	return nil

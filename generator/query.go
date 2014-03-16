@@ -30,7 +30,7 @@ func (site Site) Query(isPage bool, where string, page int, args ...string) (fil
 		limitAndOffset = fmt.Sprintf("LIMIT %d OFFSET %d", site.Config.PaginationSize, (page-1)*site.Config.PaginationSize)
 	}
 	query := fmt.Sprintf(`
-        SELECT title, slug, content, category, tags, date, summary
+        SELECT author, title, slug, content, category, tags, date, summary
         FROM files
         WHERE is_page = ?
         AND status != 'draft'
@@ -47,7 +47,7 @@ func (site Site) Query(isPage bool, where string, page int, args ...string) (fil
 
 	for rows.Next() {
 		file := &ParsedFile{isPage: isPage}
-		rows.Scan(&file.Title, &file.Slug, &file.Content, &file.Category, &file.tags, &file.Date, &file.summary)
+		rows.Scan(&file.Author, &file.Title, &file.Slug, &file.Content, &file.Category, &file.tags, &file.Date, &file.summary)
 		files = append(files, file)
 	}
 

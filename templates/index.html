@@ -10,8 +10,8 @@
 <h1>{{$article.Title}}</h1>
 
 <p>
-{{if $.Config.Author }}
-<span class="label label-default">by {{$.Config.Author}}</span>
+{{if or $.Config.Author $article.Author}}
+<span class="label label-default">by {{if $article.Author}}{{$article.Author}}{{else}}{{$.Config.Author}}{{end}}</span>
 {{end}}
 
 {{if $article.Date}}
