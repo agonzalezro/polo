@@ -7,7 +7,7 @@
 
 {{range $_, $article := .ArticlesByPage .PageNumber}}
 <article>
-<h1>{{$article.Title}}</h1>
+<h1><a href="{{$article.Slug}}.html">{{$article.Title}}</a></h1>
 
 <p>
 {{if or $.Config.Author $article.Author}}

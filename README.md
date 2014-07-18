@@ -3,35 +3,38 @@ polo
 
 [![Build Status](https://travis-ci.org/agonzalezro/polo.png)](https://travis-ci.org/agonzalezro/polo)
 
-What's it?
-----------
-
 polo is a static blog rendering tool created with Golang.
 
-I'm happily using it on my blog: http://agonzalezro.github.io, which means that works fine :)
+I'm happily using it on my blog: http://agonzalezro.github.io, which means that
+works fine :)
 
 Yes, I know that there a lot of them out there but I just want mine to learn a
 little bit of Go coding.
 
+
 How to use it
 -------------
 
-For now I am not providing binaries, you will need to compile it yourself, but
-you can use the ``Makefile`` included:
+### Install
 
-    $ make
+Let's assume that you have already installed some other Go package, so, you
+already have Go installed and `$GOPATH` in place:
 
-It will generate the file ``bin/polo``:
+	go get github.com/agonzalezro/polo
 
-    $ bin/polo -help
-    Usage of bin/polo:
+This will create a binary for you called `polo`:
+
+    $ polo -help
+    Usage of polo:
       -config="config.json": the settings file to create your site.
       -input=".": path to your articles source files.
       -output=".": path where you want to creat the html files.
 
+### Test
+
 If you want try it with the examples:
 
-    $ rm /tmp/db.sqlite;bin/polo -input examples -output /tmp
+    $ rm /tmp/db.sqlite;go run -input examples -output /tmp
     $ cd /tmp
     $ python -m SimpleHTTPServer
 
@@ -39,6 +42,7 @@ If you want try it with the examples:
 database in memory yet, so, you will need to manually delete this file.
 
 And now, you can go to http://localhost:8000 and see your generated blog.
+
 
 Just markdown!
 --------------
@@ -73,6 +77,7 @@ This is one auto explainable example:
 
 In this case we are overriding the title and the slug.
 
+
 Configuration
 -------------
 
@@ -95,3 +100,27 @@ This is what you can configure there:
 - **disqusSitename**: if you want comments on your blog.
 - **googleAnalyticsId**: the Google Analytics ID.
 - **sharethisPublisher**: it's not implemented yet.
+
+
+Templating
+----------
+
+This functionality is in a kinda early stage. I think, that we will need to
+split the templates in much more files, and this way we will be able to
+override them quite easily, but that will require some work (PRs welcomed!) :)
+
+You have a default theme on `templates/`, but you can create your own themes
+creating the same folder struct in your page. Polo will default always to this
+base theme (which is included on the binary).
+
+Example: imagine that you have your markdown files on `$HOME/site`. You could
+create a file `$HOME/site/templates/article.html` which would override our
+default template for article rendering.
+
+If you want to do changes on the default theme, you need to remember that you
+need to recreate the binary data, you should do it this way:
+
+	go-bindata -o templates/bindata.go \
+            -pkg=templates \
+            -ignore=bindata.go \
+            templates

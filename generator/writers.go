@@ -3,22 +3,53 @@ package generator
 import (
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/agonzalezro/polo/templates"
 )
 
-var archiveTemplate, articleTemplate, atomTemplate, categoryTemplate, indexTemplate, pageTemplate, tagTemplate *template.Template
+var (
+	archiveTemplate,
+	articleTemplate,
+	atomTemplate,
+	baseTemplate,
+	categoryTemplate,
+	indexTemplate,
+	pageTemplate,
+	tagTemplate *template.Template
+)
+
+// parsedFiles is a wrapper similar to template.ParseFiles that is going to
+// load the templates from the disk, and if they can not be found from the
+// go-bindata file.
+func parseFiles(filenames ...string) (*template.Template, error) {
+	tpl := template.New(filenames[0])
+	for _, filename := range filenames {
+		b, err := ioutil.ReadFile(filename)
+		if err != nil {
+			b, err = templates.Asset(filename)
+			if err != nil {
+				log.Printf("Template: %s not found. Not in HD neihter in bindata!", filename)
+				return nil, err
+			}
+		}
+		tpl.Parse(string(b))
+	}
+	return tpl, nil
+}
 
 // loadTemplates is an ugly function but I need it to run the test without the
 // template files. If I don't call .Write() I don't need the template files.
 func loadTemplates() {
-	archiveTemplate = template.Must(template.ParseFiles("templates/archive.html", "templates/base.html"))
-	articleTemplate = template.Must(template.ParseFiles("templates/article.html", "templates/base.html"))
-	atomTemplate = template.Must(template.ParseFiles("templates/atom.xml"))
-	categoryTemplate = template.Must(template.ParseFiles("templates/category.html", "templates/base.html"))
-	indexTemplate = template.Must(template.ParseFiles("templates/index.html", "templates/base.html"))
-	pageTemplate = template.Must(template.ParseFiles("templates/page.html", "templates/base.html"))
-	tagTemplate = template.Must(template.ParseFiles("templates/tag.html", "templates/base.html"))
+	archiveTemplate = template.Must(parseFiles("templates/archives.html", "templates/base.html"))
+	articleTemplate = template.Must(parseFiles("templates/article.html", "templates/base.html"))
+	atomTemplate = template.Must(parseFiles("templates/atom.xml"))
+	categoryTemplate = template.Must(parseFiles("templates/category.html", "templates/base.html"))
+	indexTemplate = template.Must(parseFiles("templates/index.html", "templates/base.html"))
+	pageTemplate = template.Must(parseFiles("templates/page.html", "templates/base.html"))
+	tagTemplate = template.Must(parseFiles("templates/tag.html", "templates/base.html"))
 }
 
 // Dump all the site content to the disk
@@ -80,9 +111,6 @@ func (site Site) writeParsedFiles(rootPath string, files []*ParsedFile) {
 
 	for _, parsedFile := range files {
 		filePath := fmt.Sprintf("%s/%s.html", rootPath, parsedFile.Slug)
-		if string(filePath[0]) == "/" {
-			filePath = filePath[1:]
-		}
 
 		var template *template.Template
 		if files[0].isPage {
@@ -108,21 +136,23 @@ func (site Site) writeParsedFiles(rootPath string, files []*ParsedFile) {
 }
 
 func (site Site) writeArticles() {
-	site.writeParsedFiles("", site.Articles())
+	site.writeParsedFiles(site.outputPath, site.Articles())
 }
 
 func (site Site) writePages() {
-	site.writeParsedFiles("pages", site.Pages())
+	pagesPath := fmt.Sprintf("%s/pages", site.outputPath)
+	site.writeParsedFiles(pagesPath, site.Pages())
 }
 
 func (site Site) writeArchive() {
-	file, err := os.Create("archives.html")
+	archivesPath := fmt.Sprintf("%s/archives.html", site.outputPath)
+	file, err := os.Create(archivesPath)
 	if err != nil {
-		log.Panic("Error creating archive file: %v", err)
+		log.Panicf("Error creating archive file: %v", err)
 	}
 
 	if err := archiveTemplate.ExecuteTemplate(file, "base", site); err != nil {
-		log.Panic("Error rendering the template for the archives: %v", err)
+		log.Panicf("Error rendering the template for the archives: %v", err)
 	}
 }
 
