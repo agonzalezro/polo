@@ -6,20 +6,14 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 
-	"github.com/agonzalezro/polo/templates"
+	// TODO: Perhaps it worth moving the template rendering to the template
+	// package
+	assets "github.com/agonzalezro/polo/templates"
 )
 
-var (
-	archiveTemplate,
-	articleTemplate,
-	atomTemplate,
-	baseTemplate,
-	categoryTemplate,
-	indexTemplate,
-	pageTemplate,
-	tagTemplate *template.Template
-)
+var templates map[string]*template.Template
 
 // parsedFiles is a wrapper similar to template.ParseFiles that is going to
 // load the templates from the disk, and if they can not be found from the
@@ -29,7 +23,7 @@ func parseFiles(filenames ...string) (*template.Template, error) {
 	for _, filename := range filenames {
 		b, err := ioutil.ReadFile(filename)
 		if err != nil {
-			b, err = templates.Asset(filename)
+			b, err = assets.Asset(filename)
 			if err != nil {
 				log.Printf("Template: %s not found. Not in HD neihter in bindata!", filename)
 				return nil, err
@@ -43,13 +37,28 @@ func parseFiles(filenames ...string) (*template.Template, error) {
 // loadTemplates is an ugly function but I need it to run the test without the
 // template files. If I don't call .Write() I don't need the template files.
 func loadTemplates() {
-	archiveTemplate = template.Must(parseFiles("templates/archives.html", "templates/base.html"))
-	articleTemplate = template.Must(parseFiles("templates/article.html", "templates/base.html"))
-	atomTemplate = template.Must(parseFiles("templates/atom.xml"))
-	categoryTemplate = template.Must(parseFiles("templates/category.html", "templates/base.html"))
-	indexTemplate = template.Must(parseFiles("templates/index.html", "templates/base.html"))
-	pageTemplate = template.Must(parseFiles("templates/page.html", "templates/base.html"))
-	tagTemplate = template.Must(parseFiles("templates/tag.html", "templates/base.html"))
+	templates = make(map[string]*template.Template)
+	toRender := make(map[string][]string)
+
+	toRender["archives"] = []string{"templates/archives.html", "templates/base.html"}
+	toRender["article"] = []string{"templates/article.html", "templates/base.html"}
+	toRender["atom"] = []string{"templates/atom.xml"}
+	toRender["category"] = []string{"templates/category.html", "templates/base.html"}
+	toRender["index"] = []string{"templates/index.html", "templates/base.html"}
+	toRender["page"] = []string{"templates/page.html", "templates/base.html"}
+	toRender["tag"] = []string{"templates/tag.html", "templates/base.html"}
+
+	for name, values := range toRender {
+		templates[name] = template.Must(parseFiles(values...))
+	}
+}
+
+func (site Site) getAbsolutePath(elem ...string) string {
+	// TODO: I am not pretty sure that this is the best way to do this
+	s := make([]string, 1, 1)
+	s[0] = site.outputPath
+	elem = append(s, elem...)
+	return path.Join(elem...)
 }
 
 // Dump all the site content to the disk
@@ -86,9 +95,9 @@ func (site Site) writeIndexes() {
 	site.NumberOfPages = site.getNumberOfPages()
 
 	for site.PageNumber = 1; site.PageNumber <= site.NumberOfPages; site.PageNumber++ {
-		indexFile := fmt.Sprintf("%s/index%d.html", site.outputPath, site.PageNumber)
+		indexFile := site.getAbsolutePath(fmt.Sprintf("index%d.html", site.PageNumber))
 		if site.PageNumber == 1 {
-			indexFile = fmt.Sprintf("%s/index.html", site.outputPath)
+			indexFile = site.getAbsolutePath("index.html")
 		}
 
 		file, err := os.Create(indexFile)
@@ -96,7 +105,7 @@ func (site Site) writeIndexes() {
 			log.Panicf("Error creating index file for page '%d': %v", site.PageNumber, err)
 		}
 
-		if err := indexTemplate.ExecuteTemplate(file, "base", site); err != nil {
+		if err := templates["index"].ExecuteTemplate(file, "base", site); err != nil {
 			log.Panicf("Error rendering the index file for page '%d': %v", site.PageNumber, err)
 		}
 	}
@@ -114,9 +123,9 @@ func (site Site) writeParsedFiles(rootPath string, files []*ParsedFile) {
 
 		var template *template.Template
 		if files[0].isPage {
-			template = pageTemplate
+			template = templates["page"]
 		} else {
-			template = articleTemplate
+			template = templates["article"]
 		}
 
 		file, err := os.Create(filePath)
@@ -140,25 +149,25 @@ func (site Site) writeArticles() {
 }
 
 func (site Site) writePages() {
-	pagesPath := fmt.Sprintf("%s/pages", site.outputPath)
+	pagesPath := site.getAbsolutePath("pages")
 	site.writeParsedFiles(pagesPath, site.Pages())
 }
 
 func (site Site) writeArchive() {
-	archivesPath := fmt.Sprintf("%s/archives.html", site.outputPath)
+	archivesPath := site.getAbsolutePath("archives.html")
 	file, err := os.Create(archivesPath)
 	if err != nil {
 		log.Panicf("Error creating archive file: %v", err)
 	}
 
-	if err := archiveTemplate.ExecuteTemplate(file, "base", site); err != nil {
+	if err := templates["archives"].ExecuteTemplate(file, "base", site); err != nil {
 		log.Panicf("Error rendering the template for the archives: %v", err)
 	}
 }
 
 func (site Site) writeCategories() {
 	// First of all create the tags/ folder if it doesn't exist
-	categoriesPath := fmt.Sprintf("%s/category", site.outputPath)
+	categoriesPath := site.getAbsolutePath("category")
 	if _, err := os.Stat(categoriesPath); os.IsNotExist(err) {
 		os.Mkdir(categoriesPath, 0777)
 	}
@@ -172,7 +181,7 @@ func (site Site) writeCategories() {
 		}
 
 		site.Category = category
-		if err := categoryTemplate.ExecuteTemplate(file, "base", site); err != nil {
+		if err := templates["category"].ExecuteTemplate(file, "base", site); err != nil {
 			log.Panicf("Error rendering the template for the category '%s': %v", category, err)
 		}
 	}
@@ -180,7 +189,7 @@ func (site Site) writeCategories() {
 
 func (site Site) writeTags() {
 	// First of all create the tags/ folder if it doesn't exist
-	tagsPath := fmt.Sprintf("%s/tag", site.outputPath)
+	tagsPath := site.getAbsolutePath("tag")
 	if _, err := os.Stat(tagsPath); os.IsNotExist(err) {
 		os.Mkdir(tagsPath, 0777)
 	}
@@ -194,14 +203,14 @@ func (site Site) writeTags() {
 		}
 
 		site.Tag = tag
-		if err := tagTemplate.ExecuteTemplate(file, "base", site); err != nil {
+		if err := templates["tag"].ExecuteTemplate(file, "base", site); err != nil {
 			log.Panicf("Error rendering the template for the tag '%s': %v", tag, err)
 		}
 	}
 }
 
 func (site Site) writeFeeds() {
-	feedsPath := fmt.Sprintf("%s/feeds", site.outputPath)
+	feedsPath := site.getAbsolutePath("feeds")
 	if _, err := os.Stat(feedsPath); os.IsNotExist(err) {
 		os.Mkdir(feedsPath, 0777)
 	}
@@ -224,7 +233,7 @@ func (site Site) writeAtomFeed(feedsPath string) {
 		limit = 10
 	}
 	site.FeedArticles = articles[:limit] // TODO: do it inside the function
-	if err := atomTemplate.Execute(file, site); err != nil {
+	if err := templates["atom"].Execute(file, site); err != nil {
 		log.Panicf("Error rendering the template for the atom file: %v", err)
 	}
 }
