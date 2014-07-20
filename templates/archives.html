@@ -1,9 +1,9 @@
 {{define "title"}}
-Archive | {{.Config.Title}}
+Archives | {{.Config.Title}}
 {{end}}
 
 {{define "content"}}
-<h1>Archive</h1>
+<h1>Archives</h1>
 <dl class="dl-horizontal">
   {{range $_, $article := .Articles}}
   <dt>{{$article.Date}}</dt>
