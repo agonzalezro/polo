@@ -40,13 +40,22 @@ func loadTemplates() {
 	templates = make(map[string]*template.Template)
 	toRender := make(map[string][]string)
 
-	toRender["archives"] = []string{"templates/archives.html", "templates/base.html"}
-	toRender["article"] = []string{"templates/article.html", "templates/base.html"}
 	toRender["atom"] = []string{"templates/atom.xml"}
-	toRender["category"] = []string{"templates/category.html", "templates/base.html"}
-	toRender["index"] = []string{"templates/index.html", "templates/base.html"}
-	toRender["page"] = []string{"templates/page.html", "templates/base.html"}
-	toRender["tag"] = []string{"templates/tag.html", "templates/base.html"}
+
+	getAllTemplateInheritance := func(template string) []string {
+		alwaysIncludeTemplates := []string{
+			"templates/base/base.html",
+			"templates/base/header.html",
+			"templates/base/footer.html"}
+		return append(alwaysIncludeTemplates, template)
+	}
+
+	toRender["archives"] = getAllTemplateInheritance("templates/archives.html")
+	toRender["article"] = getAllTemplateInheritance("templates/article.html")
+	toRender["category"] = getAllTemplateInheritance("templates/category.html")
+	toRender["index"] = getAllTemplateInheritance("templates/index.html")
+	toRender["page"] = getAllTemplateInheritance("templates/page.html")
+	toRender["tag"] = getAllTemplateInheritance("templates/tag.html")
 
 	for name, values := range toRender {
 		templates[name] = template.Must(parseFiles(values...))
