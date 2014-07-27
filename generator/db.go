@@ -2,7 +2,8 @@ package generator
 
 import (
 	"database/sql"
-	"log"
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,6 +15,10 @@ type DB struct {
 	connection sql.DB
 }
 
+type ErrorSavingParsedFile error
+type DBError error
+type UniqueSlugError error
+
 // Fill the DB with the articles an pages found
 func (db *DB) Fill(root string) {
 	filepath.Walk(root, db.parseAndSave)
@@ -24,17 +29,21 @@ func (db *DB) Fill(root string) {
 // saved with the value isPage = 1
 func (db *DB) parseAndSave(path string, fileInfo os.FileInfo, err error) error {
 	if err != nil {
-		log.Panicf("Error walking through the path: %s\n%v", path, err)
+		return err
 	}
 
 	slugsPresence := make(map[string]bool)
 
 	if !fileInfo.Mode().IsDir() && strings.HasSuffix(path, ".md") {
 		file := ParsedFile{}
-		file.load(path)
+		if err := file.load(path); err != nil {
+			return err
+		}
 
 		if _, present := slugsPresence[file.Slug]; present {
-			log.Fatalf("The slug '%s' already exists!", file.Slug)
+			errorMessage := fmt.Sprintf("The slug '%s' already exists!", file.Slug)
+			err = errors.New(errorMessage)
+			return UniqueSlugError(err)
 		}
 		slugsPresence[file.Slug] = true
 
@@ -43,7 +52,7 @@ func (db *DB) parseAndSave(path string, fileInfo os.FileInfo, err error) error {
 		}
 
 		if err := file.save(db); err != nil {
-			log.Panicf("Error saving the parsed file: %s\n%v", path, err)
+			return ErrorSavingParsedFile(err)
 		}
 	}
 
@@ -52,18 +61,17 @@ func (db *DB) parseAndSave(path string, fileInfo os.FileInfo, err error) error {
 
 // Create minimal DB struct.
 // It's going to return a DB and it's your work to close it, we can not defer the close call.
-func GetDB() *DB {
+func GetDB() (*DB, error) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
-		log.Panicf("Impossible to open DB in memory!\n%v", err)
+		return nil, DBError(err)
 	}
 
 	query := `
 	CREATE table files (author text, title text, slug text, content text, category text, tags text, date text, status text, summary text, is_page integer);
 	`
 	if _, err = db.Exec(query); err != nil {
-		log.Panicf("Error creating the DB: %v", err)
-		return nil
+		return nil, DBError(err)
 	}
-	return &DB{*db}
+	return &DB{*db}, nil
 }

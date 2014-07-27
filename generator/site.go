@@ -1,8 +1,8 @@
 package generator
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"sort"
 	"strings"
 	"time"
@@ -30,14 +30,15 @@ func NewSite(db DB, config Config, outputPath string) *Site {
 	return &Site{db: db, Config: config, outputPath: outputPath, Updated: updated}
 }
 
-func (site Site) Tags() (tags []string) {
+func (site Site) tags() (tags []string, err error) {
 	var storedTags string
 	seenList := make(map[string]bool)
 
 	query := "SELECT tags FROM files WHERE is_page = 0 AND status != 'draft'"
 	rows, err := site.db.connection.Query(query)
 	if err != nil {
-		log.Panicf("Error querying for tags: %v", err)
+		err = errors.New(fmt.Sprintf("Error querying for tags: %v", err))
+		return nil, QueryError(err)
 	}
 
 	for rows.Next() {
@@ -52,7 +53,7 @@ func (site Site) Tags() (tags []string) {
 	}
 
 	sort.Strings(tags)
-	return tags
+	return tags, nil
 }
 
 // ArrayOfPages is a dirty hack because we can not iterate over an integer on
@@ -85,13 +86,14 @@ func (site Site) GetNextPageSlug(page int) (slug string) {
 	return fmt.Sprintf("/index%d.html", page+1)
 }
 
-func (site Site) Categories() (categories []string) {
+func (site Site) categories() (categories []string, err error) {
 	var category string
 
 	query := `SELECT DISTINCT category FROM files WHERE is_page = 0 AND status != 'draft' AND category != ""`
 	rows, err := site.db.connection.Query(query)
 	if err != nil {
-		log.Panic("Error query for categories: %v", err)
+		err = errors.New(fmt.Sprintf("Error query for categories: %v", err))
+		return nil, QueryError(err)
 	}
 
 	for rows.Next() {
@@ -100,27 +102,45 @@ func (site Site) Categories() (categories []string) {
 	}
 
 	sort.Strings(categories)
-	return categories
+	return categories, nil
+}
+
+// Tags is mean to be called from the templates, we don't want error handling
+// there, so this function is just wrapping the call to .tags()
+func (site Site) Tags() (tags []string) {
+	tags, _ = site.tags()
+	return
+}
+
+// Categories is just a wrapping to don't raise any error to the template
+// rendering
+func (site Site) Categories() (categories []string) {
+	categories, _ = site.categories()
+	return
 }
 
 func (site Site) Articles() (articles []*ParsedFile) {
-	return site.QueryArticles("", -1)
+	articles, _ = site.QueryArticles("", -1)
+	return
 }
 
 func (site Site) ArticlesByPage(page int) (articles []*ParsedFile) {
-	articles = site.QueryArticles("", page)
-	return articles
+	articles, _ = site.QueryArticles("", page)
+	return
 }
 
 func (site Site) ArticlesByTag(tag string) (articles []*ParsedFile) {
 	// Concatenation from the hell
-	return site.QueryArticles("tags LIKE \"%,\"||?||\",%\"", -1, tag)
+	articles, _ = site.QueryArticles("tags LIKE \"%,\"||?||\",%\"", -1, tag)
+	return
 }
 
 func (site Site) ArticlesByCategory(category string) (articles []*ParsedFile) {
-	return site.QueryArticles("category = ?", -1, category)
+	articles, _ = site.QueryArticles("category = ?", -1, category)
+	return
 }
 
 func (site Site) Pages() (pages []*ParsedFile) {
-	return site.QueryPages()
+	pages, _ = site.QueryPages()
+	return
 }

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"html/template"
-	"log"
 	"os"
 	"strings"
 
@@ -83,10 +82,10 @@ func (pf *ParsedFile) parseMetadata() bool {
 }
 
 // Loads the content of the file object from the given filename.
-func (pf *ParsedFile) load(filePath string) {
+func (pf *ParsedFile) load(filePath string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	pf.scanner = bufio.NewScanner(file)
@@ -123,6 +122,7 @@ func (pf *ParsedFile) load(filePath string) {
 	splittedPath := strings.Split(filePath, "/")
 	pf.Category = splittedPath[len(splittedPath)-2]
 
+	return nil
 }
 
 // Split the tags into a list.

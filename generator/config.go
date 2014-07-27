@@ -2,7 +2,6 @@ package generator
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 )
 
@@ -24,10 +23,13 @@ type Config struct {
 	SharethisPublisher string
 }
 
-func GetConfig(configFile string) Config {
+type ErrorOpeningConfigFile error
+type ErrorParsingConfigFile error
+
+func ParseConfigFile(configFile string) (*Config, error) {
 	file, err := os.Open(configFile)
 	if err != nil {
-		log.Panicf("Error opening the configuration file: %s\n%v", configFile, err)
+		return nil, ErrorOpeningConfigFile(err)
 	}
 
 	decoder := json.NewDecoder(file)
@@ -35,7 +37,7 @@ func GetConfig(configFile string) Config {
 
 	err = decoder.Decode(&config)
 	if err != nil {
-		log.Panicf("Error reading the JSON file: %s\n%v", configFile, err)
+		return nil, ErrorParsingConfigFile(err)
 	}
-	return *config
+	return config, nil
 }

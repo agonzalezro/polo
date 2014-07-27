@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 
 	"github.com/agonzalezro/polo/generator"
 )
@@ -21,9 +22,19 @@ func init() {
 func main() {
 	flag.Parse()
 
-	db := generator.GetDB()
+	db, err := generator.GetDB()
+	if err != nil {
+		log.Panic(err)
+	}
 	db.Fill(inputPath)
 
-	site := generator.NewSite(*db, generator.GetConfig(configFile), outputPath)
-	site.Write()
+	config, err := generator.ParseConfigFile(configFile)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	site := generator.NewSite(*db, *config, outputPath)
+	if err := site.Write(); err != nil {
+		log.Panic(err)
+	}
 }

@@ -2,8 +2,9 @@ package generator
 
 import (
 	"fmt"
-	"log"
 )
+
+type QueryError error
 
 // getQueryInterface is going to cast the array of string to an array of
 // interfaces adding the default parameter isPage in the position 0
@@ -20,7 +21,7 @@ func getQueryInterface(isPage bool, args ...string) []interface{} {
 	return sqlArgs
 }
 
-func (site Site) Query(isPage bool, where string, page int, args ...string) (files []*ParsedFile) {
+func (site Site) Query(isPage bool, where string, page int, args ...string) (files []*ParsedFile, err error) {
 	// In case that a where clausule needs to be added, add the AND at the beginning
 	if where != "" {
 		where = fmt.Sprintf("AND %s", where)
@@ -42,7 +43,7 @@ func (site Site) Query(isPage bool, where string, page int, args ...string) (fil
 	sqlArgs := getQueryInterface(isPage, args...)
 	rows, err := site.db.connection.Query(query, sqlArgs...)
 	if err != nil {
-		log.Panicf("Error querying '%s'\n%v", query, err)
+		return nil, QueryError(err)
 	}
 
 	for rows.Next() {
@@ -51,13 +52,13 @@ func (site Site) Query(isPage bool, where string, page int, args ...string) (fil
 		files = append(files, file)
 	}
 
-	return files
+	return files, nil
 }
 
-func (site Site) QueryArticles(where string, page int, args ...string) []*ParsedFile {
+func (site Site) QueryArticles(where string, page int, args ...string) ([]*ParsedFile, error) {
 	return site.Query(false, where, page, args...)
 }
 
-func (site Site) QueryPages() []*ParsedFile {
+func (site Site) QueryPages() ([]*ParsedFile, error) {
 	return site.Query(true, "", -1)
 }
