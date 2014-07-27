@@ -123,4 +123,4 @@ need to recreate the binary data, you should do it this way:
 	go-bindata -o templates/bindata.go \
             -pkg=templates \
             -ignore=bindata.go \
-            templates
+            templates templates/base
