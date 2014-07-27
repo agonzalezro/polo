@@ -120,7 +120,10 @@ func (pf *ParsedFile) load(filePath string) error {
 
 	// Set the category from the filePath
 	splittedPath := strings.Split(filePath, "/")
-	pf.Category = splittedPath[len(splittedPath)-2]
+	length := len(splittedPath)
+	if length > 1 {
+		pf.Category = splittedPath[len(splittedPath)-2]
+	}
 
 	return nil
 }
