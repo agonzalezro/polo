@@ -51,7 +51,8 @@ func loadTemplates() {
 		alwaysIncludeTemplates := []string{
 			"templates/base/base.html",
 			"templates/base/header.html",
-			"templates/base/footer.html"}
+			"templates/base/footer.html",
+			"templates/base/analytics.html"}
 		return append(alwaysIncludeTemplates, template)
 	}
 
