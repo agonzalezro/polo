@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -10,14 +9,12 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	// TODO: Perhaps it worth moving the template rendering to the template
 	// package
 	assets "github.com/agonzalezro/polo/templates"
 )
-
-type ErrorCreate error
-type ErrorExecuteTemplate error
 
 var templates map[string]*template.Template
 
@@ -94,95 +91,116 @@ func (site Site) createAbsolutePath(elem ...string) (file *os.File, err error) {
 }
 
 // Auxiliar function to quickly log the quantity of items created
-func logCreation(noun string, quantity int) {
+func logCreation(noun string, quantity int) string {
 	var pluralize string
 	if quantity > 1 {
 		pluralize = "s"
 	}
-	log.Printf("%4d %s%s created", quantity, strings.Title(noun), pluralize)
+	return fmt.Sprintf("%5d %s%s created", quantity, strings.Title(noun), pluralize)
 }
 
 // Dump all the site content to the disk
 func (site Site) Write() (err error) {
 	loadTemplates()
 
-	logs := make(map[string]int)
+	var wg sync.WaitGroup
+	chErrors := make(chan error, 12) // Enough buffer for all the subroutines
 
-	chErrors := make(chan error, 7)
-	subroutines := 4 // 4 are mandatory, the others depend of settings
-
+	wg.Add(4) // The following 4 subroutines are mandatory
 	go func() {
-		logs["index page"], err = site.writeIndexes()
+		defer wg.Done()
+		i, err := site.writeIndexes()
+		fmt.Println(logCreation("index page", i))
 		chErrors <- err
 	}()
 
 	go func() {
-		logs["feed"], err = site.writeFeeds()
+		defer wg.Done()
+		i, err := site.writeFeeds()
+		fmt.Println(logCreation("feed", i))
 		chErrors <- err
 	}()
 
 	go func() {
-		logs["article"], err = site.writeArticles()
+		defer wg.Done()
+		i, err := site.writeArticles()
+		fmt.Println(logCreation("article", i))
 		chErrors <- err
 	}()
 
 	go func() {
-		logs["page"], err = site.writePages()
+		defer wg.Done()
+		i, err := site.writePages()
+		fmt.Println(logCreation("page", i))
 		chErrors <- err
 	}()
 
 	if site.Config.ShowArchive {
-		subroutines++
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			err := site.writeArchive()
-			if err != nil {
-				logs["archive"] = 1 // Not completely true, but... meh!
-			}
+			fmt.Println(logCreation("archive", 1)) // If error it will not be 1, but we don't care
 			chErrors <- err
 		}()
 	}
 	if site.Config.ShowCategories {
-		subroutines++
+		wg.Add(1)
 		go func() {
-			logs["category page"], err = site.writeCategories()
+			defer wg.Done()
+			i, err := site.writeCategories()
+			fmt.Println(logCreation("category page", i))
 			chErrors <- err
 		}()
 	}
 	if site.Config.ShowTags {
-		subroutines++
+		wg.Add(1)
 		go func() {
-			logs["tag page"], err = site.writeTags()
+			defer wg.Done()
+			i, err := site.writeTags()
+			fmt.Println(logCreation("tag page", i))
 			chErrors <- err
 		}()
 	}
 
-	for i := 0; i < subroutines; i++ {
-		err := <-chErrors
-		if err != nil {
-			return err
-		}
-	}
+	wg.Wait()
 
-	for noun, quantity := range logs {
-		logCreation(noun, quantity)
+LOOP:
+	for {
+		select {
+		case err := <-chErrors:
+			if err != nil {
+				return err
+			}
+		default:
+			break LOOP
+		}
 	}
 
 	return nil
 }
 
-func (site Site) getNumberOfPages() int {
+func (site Site) getNumberOfPages() (int, error) {
+	articles, err := site.articles()
+	if err != nil {
+		return 0, err
+	}
 	if site.NumberOfPages == 0 {
-		site.NumberOfPages = len(site.Articles()) / site.Config.PaginationSize
+		site.NumberOfPages = len(articles) / site.Config.PaginationSize
 	}
 	// If it continue being 0, we don't have pages
 	if site.NumberOfPages == 0 {
 		site.NumberOfPages = -1
 	}
-	return site.NumberOfPages
+	return site.NumberOfPages, nil
 }
 
 func (site Site) writeIndexes() (int, error) {
-	site.NumberOfPages = site.getNumberOfPages()
+	nop, err := site.getNumberOfPages()
+	if err != nil {
+		return 0, nil
+	}
+	site.NumberOfPages = nop
 
 	for site.PageNumber = 1; site.PageNumber <= site.NumberOfPages; site.PageNumber++ {
 		indexFile := "index.html"
@@ -196,8 +214,7 @@ func (site Site) writeIndexes() (int, error) {
 		}
 
 		if err := templates["index"].ExecuteTemplate(file, "base", site); err != nil {
-			err = errors.New(fmt.Sprintf("Error rendering the index file for page '%d': %v", site.PageNumber, err))
-			return site.PageNumber, ErrorExecuteTemplate(err)
+			return site.PageNumber, err
 		}
 	}
 
@@ -211,6 +228,7 @@ func (site Site) writeParsedFiles(pathAppender string, files []*ParsedFile) (int
 	)
 
 	for i, parsedFile = range files {
+		i++
 		var template *template.Template
 		if files[0].isPage {
 			template = templates["page"]
@@ -221,7 +239,7 @@ func (site Site) writeParsedFiles(pathAppender string, files []*ParsedFile) (int
 		filePath := fmt.Sprintf("%s/%s.html", pathAppender, parsedFile.Slug)
 		file, err := site.createAbsolutePath(filePath)
 		if err != nil {
-			return i + 1, err
+			return i, err
 		}
 
 		if files[0].isPage {
@@ -230,20 +248,27 @@ func (site Site) writeParsedFiles(pathAppender string, files []*ParsedFile) (int
 			site.Article = *parsedFile
 		}
 		if err := template.ExecuteTemplate(file, "base", site); err != nil {
-			err = errors.New(fmt.Sprintf("Error rendering the template for the file: %s\n%v", filePath, err))
-			return i + 1, ErrorExecuteTemplate(err)
+			return i, err
 		}
 	}
 
-	return i + 1, nil
+	return i, nil
 }
 
 func (site Site) writeArticles() (int, error) {
-	return site.writeParsedFiles("/", site.Articles())
+	articles, err := site.articles()
+	if err != nil {
+		return 0, err
+	}
+	return site.writeParsedFiles("/", articles)
 }
 
 func (site Site) writePages() (int, error) {
-	return site.writeParsedFiles("pages", site.Pages())
+	pages, err := site.pages()
+	if err != nil {
+		return 0, err
+	}
+	return site.writeParsedFiles("pages", pages)
 }
 
 func (site Site) writeArchive() error {
@@ -253,8 +278,7 @@ func (site Site) writeArchive() error {
 	}
 
 	if err := templates["archives"].ExecuteTemplate(file, "base", site); err != nil {
-		err = errors.New(fmt.Sprintf("Error rendering the template for the archives: %v", err))
-		return ErrorExecuteTemplate(err)
+		return err
 	}
 
 	return nil
@@ -266,21 +290,25 @@ func (site Site) writeCategories() (int, error) {
 		category string
 	)
 
-	for i, category = range site.Categories() {
+	categories, err := site.categories()
+	if err != nil {
+		return 0, err
+	}
+	for i, category = range categories {
+		i++
 		categoryFile := fmt.Sprintf("category/%s.html", category)
 		file, err := site.createAbsolutePath(categoryFile)
 		if err != nil {
-			return i + 1, err
+			return i, err
 		}
 
 		site.Category = category
 		if err := templates["category"].ExecuteTemplate(file, "base", site); err != nil {
-			err = errors.New(fmt.Sprintf("Error rendering the template for the category '%s': %v", category, err))
-			return i + 1, ErrorExecuteTemplate(err)
+			return i, err
 		}
 	}
 
-	return i + 1, nil
+	return i, nil
 }
 
 func (site Site) writeTags() (int, error) {
@@ -289,21 +317,25 @@ func (site Site) writeTags() (int, error) {
 		tag string
 	)
 
-	for i, tag = range site.Tags() {
+	tags, err := site.tags()
+	if err != nil {
+		return 0, err
+	}
+	for i, tag = range tags {
+		i++
 		tagFile := fmt.Sprintf("tag/%s.html", tag)
 		file, err := site.createAbsolutePath(tagFile)
 		if err != nil {
-			return i + 1, err
+			return i, err
 		}
 
 		site.Tag = tag
 		if err := templates["tag"].ExecuteTemplate(file, "base", site); err != nil {
-			err = errors.New(fmt.Sprintf("Error rendering the template for the tag '%s': %v", tag, err))
-			return i + 1, ErrorExecuteTemplate(err)
+			return i, err
 		}
 	}
 
-	return i + 1, nil
+	return i, nil
 }
 
 func (site Site) writeFeeds() (int, error) {
@@ -316,9 +348,9 @@ func (site Site) writeFeeds() (int, error) {
 	if err := site.writeRSSFeed(); err != nil {
 		return i + 1, err
 	}
-	i += 0 // Not implemented yet
 
-	return i + 1, nil
+	i += 1 // Not implemented yet, fake it
+	return i, nil
 }
 
 func (site Site) writeAtomFeed() error {
@@ -327,15 +359,17 @@ func (site Site) writeAtomFeed() error {
 		return err
 	}
 
-	articles := site.Articles()
+	articles, err := site.articles()
+	if err != nil {
+		return err
+	}
 	limit := len(articles)
 	if limit > 10 {
 		limit = 10
 	}
 	site.FeedArticles = articles[:limit] // TODO: do it inside the function
 	if err := templates["atom"].Execute(file, site); err != nil {
-		err = errors.New(fmt.Sprintf("Error rendering the template for the atom file: %v", err))
-		return ErrorExecuteTemplate(err)
+		return err
 	}
 
 	return nil
