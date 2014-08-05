@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	// TODO: Perhaps it worth moving the template rendering to the template
@@ -68,70 +69,102 @@ func loadTemplates() {
 	}
 }
 
-func (site Site) getAbsolutePath(elem ...string) string {
+// createAbsolutePath assures that the full dir tree exists and return the
+// point to the file
+func (site Site) createAbsolutePath(elem ...string) (file *os.File, err error) {
 	// TODO: I am not pretty sure that this is the best way to do this
 	s := make([]string, 1, 1)
 	s[0] = site.outputPath
 	elem = append(s, elem...)
-	return path.Join(elem...)
+	absolutePath := path.Join(elem...)
+
+	dir := filepath.Dir(absolutePath)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.Mkdir(dir, 0777); err != nil {
+			return nil, err
+		}
+	}
+
+	file, err = os.Create(absolutePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
+}
+
+// Auxiliar function to quickly log the quantity of items created
+func logCreation(noun string, quantity int) {
+	var pluralize string
+	if quantity > 1 {
+		pluralize = "s"
+	}
+	log.Printf("%4d %s%s created", quantity, strings.Title(noun), pluralize)
 }
 
 // Dump all the site content to the disk
 func (site Site) Write() (err error) {
-	var i int
-	log := func(noun string, qty int) {
-		var pluralize string
-		if qty > 1 {
-			pluralize = "s"
-		}
-		log.Printf("%4d %s%s created", qty, strings.Title(noun), pluralize)
-	}
-
 	loadTemplates()
 
-	i, err = site.writeIndexes()
-	if err != nil {
-		return err
-	}
-	log("index page", i)
+	logs := make(map[string]int)
 
-	i, err = site.writeFeeds()
-	if err != nil {
-		return err
-	}
-	log("feed", i)
+	chErrors := make(chan error, 7)
+	subroutines := 4 // 4 are mandatory, the others depend of settings
 
-	i, err = site.writeArticles()
-	if err != nil {
-		return err
-	}
-	log("article", i)
+	go func() {
+		logs["index page"], err = site.writeIndexes()
+		chErrors <- err
+	}()
 
-	i, err = site.writePages()
-	if err != nil {
-		return err
-	}
-	log("page", i)
+	go func() {
+		logs["feed"], err = site.writeFeeds()
+		chErrors <- err
+	}()
+
+	go func() {
+		logs["article"], err = site.writeArticles()
+		chErrors <- err
+	}()
+
+	go func() {
+		logs["page"], err = site.writePages()
+		chErrors <- err
+	}()
 
 	if site.Config.ShowArchive {
-		if err = site.writeArchive(); err != nil {
-			return err
-		}
-		log("archive", 1)
+		subroutines++
+		go func() {
+			err := site.writeArchive()
+			if err != nil {
+				logs["archive"] = 1 // Not completely true, but... meh!
+			}
+			chErrors <- err
+		}()
 	}
 	if site.Config.ShowCategories {
-		i, err = site.writeCategories()
-		if err != nil {
-			return err
-		}
-		log("category page", i)
+		subroutines++
+		go func() {
+			logs["category page"], err = site.writeCategories()
+			chErrors <- err
+		}()
 	}
 	if site.Config.ShowTags {
-		i, err = site.writeTags()
+		subroutines++
+		go func() {
+			logs["tag page"], err = site.writeTags()
+			chErrors <- err
+		}()
+	}
+
+	for i := 0; i < subroutines; i++ {
+		err := <-chErrors
 		if err != nil {
 			return err
 		}
-		log("tag page", i)
+	}
+
+	for noun, quantity := range logs {
+		logCreation(noun, quantity)
 	}
 
 	return nil
@@ -152,15 +185,14 @@ func (site Site) writeIndexes() (int, error) {
 	site.NumberOfPages = site.getNumberOfPages()
 
 	for site.PageNumber = 1; site.PageNumber <= site.NumberOfPages; site.PageNumber++ {
-		indexFile := site.getAbsolutePath(fmt.Sprintf("index%d.html", site.PageNumber))
-		if site.PageNumber == 1 {
-			indexFile = site.getAbsolutePath("index.html")
+		indexFile := "index.html"
+		if site.PageNumber > 1 {
+			indexFile = fmt.Sprintf("index%s.html", site.PageNumber)
 		}
 
-		file, err := os.Create(indexFile)
+		file, err := site.createAbsolutePath(indexFile)
 		if err != nil {
-			err = errors.New(fmt.Sprintf("Error creating index file for page '%d': %v", site.PageNumber, err))
-			return site.PageNumber, ErrorCreate(err)
+			return site.PageNumber, err
 		}
 
 		if err := templates["index"].ExecuteTemplate(file, "base", site); err != nil {
@@ -172,21 +204,13 @@ func (site Site) writeIndexes() (int, error) {
 	return site.PageNumber, nil
 }
 
-func (site Site) writeParsedFiles(rootPath string, files []*ParsedFile) (int, error) {
-	if rootPath != "" {
-		if _, err := os.Stat(rootPath); os.IsNotExist(err) {
-			os.Mkdir(rootPath, 0777)
-		}
-	}
-
+func (site Site) writeParsedFiles(pathAppender string, files []*ParsedFile) (int, error) {
 	var (
 		i          int
 		parsedFile *ParsedFile
 	)
 
 	for i, parsedFile = range files {
-		filePath := fmt.Sprintf("%s/%s.html", rootPath, parsedFile.Slug)
-
 		var template *template.Template
 		if files[0].isPage {
 			template = templates["page"]
@@ -194,10 +218,10 @@ func (site Site) writeParsedFiles(rootPath string, files []*ParsedFile) (int, er
 			template = templates["article"]
 		}
 
-		file, err := os.Create(filePath)
+		filePath := fmt.Sprintf("%s/%s.html", pathAppender, parsedFile.Slug)
+		file, err := site.createAbsolutePath(filePath)
 		if err != nil {
-			err = errors.New(fmt.Sprintf("Error creating the file: %s\n%v", filePath, err))
-			return i + 1, ErrorCreate(err)
+			return i + 1, err
 		}
 
 		if files[0].isPage {
@@ -215,20 +239,17 @@ func (site Site) writeParsedFiles(rootPath string, files []*ParsedFile) (int, er
 }
 
 func (site Site) writeArticles() (int, error) {
-	return site.writeParsedFiles(site.outputPath, site.Articles())
+	return site.writeParsedFiles("/", site.Articles())
 }
 
 func (site Site) writePages() (int, error) {
-	pagesPath := site.getAbsolutePath("pages")
-	return site.writeParsedFiles(pagesPath, site.Pages())
+	return site.writeParsedFiles("pages", site.Pages())
 }
 
 func (site Site) writeArchive() error {
-	archivesPath := site.getAbsolutePath("archives.html")
-	file, err := os.Create(archivesPath)
+	file, err := site.createAbsolutePath("archives.html")
 	if err != nil {
-		err = errors.New(fmt.Sprintf("Error creating archive file: %v", err))
-		return ErrorCreate(err)
+		return err
 	}
 
 	if err := templates["archives"].ExecuteTemplate(file, "base", site); err != nil {
@@ -240,24 +261,16 @@ func (site Site) writeArchive() error {
 }
 
 func (site Site) writeCategories() (int, error) {
-	// First of all create the tags/ folder if it doesn't exist
-	categoriesPath := site.getAbsolutePath("category")
-	if _, err := os.Stat(categoriesPath); os.IsNotExist(err) {
-		os.Mkdir(categoriesPath, 0777)
-	}
-
 	var (
 		i        int
 		category string
 	)
 
 	for i, category = range site.Categories() {
-		categoryFile := fmt.Sprintf("%s/%s.html", categoriesPath, category)
-
-		file, err := os.Create(categoryFile)
+		categoryFile := fmt.Sprintf("category/%s.html", category)
+		file, err := site.createAbsolutePath(categoryFile)
 		if err != nil {
-			err = errors.New(fmt.Sprintf("Error creating the category '%s' file: %v", category, err))
-			return i + 1, ErrorCreate(err)
+			return i + 1, err
 		}
 
 		site.Category = category
@@ -271,24 +284,16 @@ func (site Site) writeCategories() (int, error) {
 }
 
 func (site Site) writeTags() (int, error) {
-	// First of all create the tags/ folder if it doesn't exist
-	tagsPath := site.getAbsolutePath("tag")
-	if _, err := os.Stat(tagsPath); os.IsNotExist(err) {
-		os.Mkdir(tagsPath, 0777)
-	}
-
 	var (
 		i   int
 		tag string
 	)
 
 	for i, tag = range site.Tags() {
-		tagFile := fmt.Sprintf("%s/%s.html", tagsPath, tag)
-
-		file, err := os.Create(tagFile)
+		tagFile := fmt.Sprintf("tag/%s.html", tag)
+		file, err := site.createAbsolutePath(tagFile)
 		if err != nil {
-			err = errors.New(fmt.Sprintf("Error creating the tag '%s' file: %v", tag, err))
-			return i + 1, ErrorCreate(err)
+			return i + 1, err
 		}
 
 		site.Tag = tag
@@ -304,16 +309,11 @@ func (site Site) writeTags() (int, error) {
 func (site Site) writeFeeds() (int, error) {
 	var i int
 
-	feedsPath := site.getAbsolutePath("feeds")
-	if _, err := os.Stat(feedsPath); os.IsNotExist(err) {
-		os.Mkdir(feedsPath, 0777)
-	}
-
-	if err := site.writeAtomFeed(feedsPath); err != nil {
+	if err := site.writeAtomFeed(); err != nil {
 		return i + 1, err
 	}
 
-	if err := site.writeRSSFeed(feedsPath); err != nil {
+	if err := site.writeRSSFeed(); err != nil {
 		return i + 1, err
 	}
 	i += 0 // Not implemented yet
@@ -321,13 +321,10 @@ func (site Site) writeFeeds() (int, error) {
 	return i + 1, nil
 }
 
-func (site Site) writeAtomFeed(feedsPath string) error {
-	path := fmt.Sprintf("%s/all.atom.xml", feedsPath)
-
-	file, err := os.Create(path)
+func (site Site) writeAtomFeed() error {
+	file, err := site.createAbsolutePath("feeds/all.atom.xml")
 	if err != nil {
-		err = errors.New(fmt.Sprintf("Error creating the atom file: %v", err))
-		return ErrorCreate(err)
+		return err
 	}
 
 	articles := site.Articles()
@@ -344,7 +341,7 @@ func (site Site) writeAtomFeed(feedsPath string) error {
 	return nil
 }
 
-func (site Site) writeRSSFeed(feedsPath string) error {
+func (site Site) writeRSSFeed() error {
 	// TODO (agonzalezro): to be implemented if somebody needs it
 	return nil
 }
