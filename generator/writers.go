@@ -187,7 +187,7 @@ func (site Site) writeIndexes() (int, error) {
 	for site.PageNumber = 1; site.PageNumber <= site.NumberOfPages; site.PageNumber++ {
 		indexFile := "index.html"
 		if site.PageNumber > 1 {
-			indexFile = fmt.Sprintf("index%s.html", site.PageNumber)
+			indexFile = fmt.Sprintf("index%d.html", site.PageNumber)
 		}
 
 		file, err := site.createAbsolutePath(indexFile)
