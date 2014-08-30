@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -23,22 +22,29 @@ type Site struct {
 	FeedArticles  []*ParsedFile
 	PageNumber    int
 	NumberOfPages int
+
+	Cache map[string]interface{}
 }
 
 func NewSite(db DB, config Config, outputPath string) *Site {
 	updated := time.Now().Format(time.RFC3339)
-	return &Site{db: db, Config: config, outputPath: outputPath, Updated: updated}
+	site := &Site{db: db, Config: config, outputPath: outputPath, Updated: updated}
+	site.Cache = make(map[string]interface{})
+	return site
 }
 
 func (site Site) tags() (tags []string, err error) {
+	if tags, ok := site.Cache["tags"]; ok {
+		return tags.([]string), nil
+	}
+
 	var storedTags string
 	seenList := make(map[string]bool)
 
 	query := "SELECT tags FROM files WHERE is_page = 0 AND status != 'draft'"
-	rows, err := site.db.connection.Query(query)
+	rows, err := site.db.Query(query)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("Error querying for tags: %v", err))
-		return nil, QueryError(err)
+		return nil, err
 	}
 
 	for rows.Next() {
@@ -53,13 +59,15 @@ func (site Site) tags() (tags []string, err error) {
 	}
 
 	sort.Strings(tags)
+	site.Cache["tags"] = tags
 	return tags, nil
 }
 
 // ArrayOfPages is a dirty hack because we can not iterate over an integer on
 // the template
 func (site Site) ArrayOfPages() (pages []int) {
-	for i := 1; i < site.getNumberOfPages()+1; i++ {
+	nop, _ := site.getNumberOfPages() // If it errors here we would see the error before
+	for i := 1; i < nop+1; i++ {
 		pages = append(pages, i)
 	}
 	return pages
@@ -87,13 +95,16 @@ func (site Site) GetNextPageSlug(page int) (slug string) {
 }
 
 func (site Site) categories() (categories []string, err error) {
+	if categories, ok := site.Cache["categories"]; ok {
+		return categories.([]string), nil
+	}
+
 	var category string
 
 	query := `SELECT DISTINCT category FROM files WHERE is_page = 0 AND status != 'draft' AND category != ""`
-	rows, err := site.db.connection.Query(query)
+	rows, err := site.db.Query(query)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("Error query for categories: %v", err))
-		return nil, QueryError(err)
+		return nil, err
 	}
 
 	for rows.Next() {
@@ -102,6 +113,8 @@ func (site Site) categories() (categories []string, err error) {
 	}
 
 	sort.Strings(categories)
+
+	site.Cache["categories"] = categories
 	return categories, nil
 }
 
@@ -119,8 +132,20 @@ func (site Site) Categories() (categories []string) {
 	return
 }
 
+func (site Site) articles() (articles []*ParsedFile, err error) {
+	if articles, ok := site.Cache["articles"]; ok {
+		return articles.([]*ParsedFile), nil
+	}
+	articles, err = site.QueryArticles("", -1)
+	if err != nil {
+		return nil, err
+	}
+	site.Cache["articles"] = articles
+	return articles, nil
+}
+
 func (site Site) Articles() (articles []*ParsedFile) {
-	articles, _ = site.QueryArticles("", -1)
+	articles, _ = site.articles()
 	return
 }
 
@@ -140,7 +165,15 @@ func (site Site) ArticlesByCategory(category string) (articles []*ParsedFile) {
 	return
 }
 
+func (site Site) pages() (pages []*ParsedFile, err error) {
+	pages, err = site.QueryPages()
+	if err != nil {
+		return nil, err
+	}
+	return pages, nil
+}
+
 func (site Site) Pages() (pages []*ParsedFile) {
-	pages, _ = site.QueryPages()
+	pages, _ = site.pages()
 	return
 }

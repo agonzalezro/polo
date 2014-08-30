@@ -179,7 +179,13 @@ func (file ParsedFile) save(db *DB) error {
 		isPageInt = 1
 	}
 
-	if _, err := db.connection.Exec(query, file.Author, file.Title, file.Slug, file.Content, file.Category, file.tags, file.Date, file.status, file.summary, isPageInt); err != nil {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Commit()
+
+	if _, err := tx.Exec(query, file.Author, file.Title, file.Slug, file.Content, file.Category, file.tags, file.Date, file.status, file.summary, isPageInt); err != nil {
 		return err
 	}
 	return nil

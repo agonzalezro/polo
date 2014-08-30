@@ -41,7 +41,13 @@ func (site Site) Query(isPage bool, where string, page int, args ...string) (fil
     `, where, limitAndOffset)
 
 	sqlArgs := getQueryInterface(isPage, args...)
-	rows, err := site.db.connection.Query(query, sqlArgs...)
+
+	cache_key := fmt.Sprintf("%s%v", query, sqlArgs)
+	if files, ok := site.Cache[cache_key]; ok {
+		return files.([]*ParsedFile), nil
+	}
+
+	rows, err := site.db.Query(query, sqlArgs...)
 	if err != nil {
 		return nil, QueryError(err)
 	}
@@ -52,6 +58,7 @@ func (site Site) Query(isPage bool, where string, page int, args ...string) (fil
 		files = append(files, file)
 	}
 
+	site.Cache[cache_key] = files
 	return files, nil
 }
 

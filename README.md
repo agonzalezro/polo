@@ -34,12 +34,9 @@ This will create a binary for you called `polo`:
 
 If you want try it with the examples:
 
-    $ rm /tmp/db.sqlite;go run -input examples -output /tmp
-    $ cd /tmp
+    $ go run main.go -input examples -output /tmp/test
+    $ cd /tmp/test
     $ python -m SimpleHTTPServer
-
-**Note**: the ``rm /tmp/db.sqlite`` is because of a bug. I can not run the
-database in memory yet, so, you will need to manually delete this file.
 
 And now, you can go to http://localhost:8000 and see your generated blog.
 

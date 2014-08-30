@@ -12,16 +12,14 @@ import (
 )
 
 type DB struct {
-	connection sql.DB
+	sql.DB
 }
 
-type ErrorSavingParsedFile error
-type DBError error
 type UniqueSlugError error
 
 // Fill the DB with the articles an pages found
-func (db *DB) Fill(root string) {
-	filepath.Walk(root, db.parseAndSave)
+func (db *DB) Fill(root string) error {
+	return filepath.Walk(root, db.parseAndSave)
 }
 
 // Append the paths to an array in case that they are markdown files.
@@ -52,7 +50,7 @@ func (db *DB) parseAndSave(path string, fileInfo os.FileInfo, err error) error {
 		}
 
 		if err := file.save(db); err != nil {
-			return ErrorSavingParsedFile(err)
+			return err
 		}
 	}
 
@@ -61,17 +59,23 @@ func (db *DB) parseAndSave(path string, fileInfo os.FileInfo, err error) error {
 
 // Create minimal DB struct.
 // It's going to return a DB and it's your work to close it, we can not defer the close call.
-func GetDB() (*DB, error) {
+func NewDB() (*DB, error) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
-		return nil, DBError(err)
+		return nil, err
 	}
 
 	query := `
-	CREATE table files (author text, title text, slug text, content text, category text, tags text, date text, status text, summary text, is_page integer);
+ 	CREATE TABLE files (author text, title text, slug text, content text, category text, tags text, date text, status text, summary text, is_page integer);
 	`
-	if _, err = db.Exec(query); err != nil {
-		return nil, DBError(err)
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Commit()
+
+	if _, err = tx.Exec(query); err != nil {
+		return nil, err
 	}
 	return &DB{*db}, nil
 }
