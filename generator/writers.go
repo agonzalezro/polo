@@ -106,14 +106,13 @@ func (site Site) Write() (err error) {
 	var wg sync.WaitGroup
 	chErrors := make(chan error, 12) // Enough buffer for all the subroutines
 
-	wg.Add(4) // The following 4 subroutines are mandatory
-	go func() {
-		defer wg.Done()
-		i, err := site.writeIndexes()
-		fmt.Println(logCreation("index page", i))
-		chErrors <- err
-	}()
+	// TODO: this is a crappy way of forcing the cache on the queries.
+	// See: https://github.com/agonzalezro/polo/issues/23
+	i, err := site.writeIndexes()
+	fmt.Println(logCreation("index page", i))
+	chErrors <- err
 
+	wg.Add(3) // The following 4 subroutines are mandatory
 	go func() {
 		defer wg.Done()
 		i, err := site.writeFeeds()
