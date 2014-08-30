@@ -20,25 +20,25 @@ How to use it
 Let's assume that you have already installed some other Go package, so, you
 already have Go installed and `$GOPATH` in place:
 
-	go get github.com/agonzalezro/polo
+	go install github.com/agonzalezro/polo
 
 This will create a binary for you called `polo`:
 
     $ polo -help
     Usage of polo:
       -config="config.json": the settings file to create your site.
+      -daemon=false: create a simple HTTP server after the blog is created to see the result
       -input=".": path to your articles source files.
       -output=".": path where you want to creat the html files.
+      -port=8080: port where to run the server
 
 ### Test
 
 If you want try it with the examples:
 
-    $ go run main.go -input examples -output /tmp/test
-    $ cd /tmp/test
-    $ python -m SimpleHTTPServer
+    $ go run main.go -input examples -output /tmp/test -daemon
 
-And now, you can go to http://localhost:8000 and see your generated blog.
+And now, you can go to http://localhost:8080 and see your generated blog.
 
 
 Just markdown!
@@ -96,7 +96,6 @@ This is what you can configure there:
 
 - **disqusSitename**: if you want comments on your blog.
 - **googleAnalyticsId**: the Google Analytics ID.
-- **sharethisPublisher**: it's not implemented yet.
 
 
 Templating
