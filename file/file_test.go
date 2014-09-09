@@ -1,39 +1,48 @@
-package generator
+package file
 
 import (
 	"bufio"
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 )
+
+func fail(t *testing.T, name string, got interface{}, expected interface{}) {
+	t.Error(name, "was not the expected.\n\tgot:", got, "\n\texpected:", expected)
+}
 
 // Test that the metadata is generated properly following the Pelican standards
 // for it
 func TestMetadataGeneration(t *testing.T) {
+	timeLayout := "2006-01-02 15:04"
+
 	expectedTitle := "My super title"
-	expectedDate := "2010-12-03 10:20"
-	expectedSlug := "my-super-post"
+	expectedDate, _ := time.Parse(timeLayout, "2010-12-03 10:20")
+	expectedSlug := "/my-super-post.html"
 	expectedText := "This is the content of my super blog post."
+	expectedTags := []string{"thats", "awesome"}
 
 	content := fmt.Sprintf(
 		"Title: %s\nDate: %s\nTags: thats, awesome\nSlug: %s\n\n%s",
-		expectedTitle, expectedDate, expectedSlug, expectedText)
+		expectedTitle, expectedDate.Format(timeLayout), expectedSlug, expectedText)
 
 	pf := ParsedFile{}
 	pf.scanner = bufio.NewScanner(strings.NewReader(content))
 
 	pf.parseMetadata()
 	if pf.Title != expectedTitle {
-		t.Errorf("Title is not the expected: '%s'", pf.Title)
+		fail(t, "Title", pf.Title, expectedTitle)
 	}
+
 	if pf.Date != expectedDate {
-		t.Errorf("Date is not the expected: '%s'", pf.Date)
+		fail(t, "Date", pf.Date, expectedDate)
 	}
-	if pf.tags != ",thats,awesome," {
-		t.Errorf("Tags is not expected: '%s'", pf.tags)
+	if pf.Tags[0] != expectedTags[0] || pf.Tags[1] != expectedTags[1] {
+		fail(t, "Tags", pf.Tags, expectedTags)
 	}
 	if pf.Slug != expectedSlug {
-		t.Errorf("Slug is not expected: '%s'", pf.Slug)
+		fail(t, "Slug", pf.Slug, expectedSlug)
 	}
 
 	// Check that doesn't read too much

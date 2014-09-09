@@ -5,14 +5,9 @@ import (
 	"strings"
 )
 
-/*
- * Transform a string in a proper slug.
- *
- * Note: this will possibly not be the best function if you want to clean non
- * ascii chars as ñ or similar (if you are going to use the slug in a url this
- * is important).
- */
+// Slugify transform a string in a proper slug.
 func Slugify(title string) (slug string) {
+	// TODO: weird behaviour expected with non-ascci characters.
 	re, _ := regexp.Compile(`[^\w\s-]`)
 	slug = re.ReplaceAllLiteralString(title, "")
 

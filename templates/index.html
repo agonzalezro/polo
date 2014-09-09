@@ -1,21 +1,21 @@
 {{define "title"}}
-{{.Config.Title}}
+{{.Site.Config.Title}}
 {{end}}
 
 {{define "content"}}
-{{if .ArticlesByPage .PageNumber}}
+{{if .Articles}}
 
-{{range $_, $article := .ArticlesByPage .PageNumber}}
+{{range $_, $article := .Articles}}
 <article>
-<h1><a href="{{$article.Slug}}.html">{{$article.Title}}</a></h1>
+<h1><a href="{{$article.Slug}}">{{$article.Title}}</a></h1>
 
 <p>
-{{if or $.Config.Author $article.Author}}
-<span class="label label-default">by {{if $article.Author}}{{$article.Author}}{{else}}{{$.Config.Author}}{{end}}</span>
+{{if or $.Site.Config.Author $article.Author}}
+<span class="label label-default">by {{if $article.Author}}{{$article.Author}}{{else}}{{$.Site.Config.Author}}{{end}}</span>
 {{end}}
 
 {{if $article.Date}}
-<span class="label label-default">{{$article.Date}}</span>
+<span class="label label-default">{{$.HumanizeDatetime $article.Date}}</span>
 {{end}}
 
 {{if $article.Category}}
@@ -29,8 +29,8 @@
 {{end}}
 </p>
 
-{{$article.Html $article.Content}}
-<p class="text-right"><a class="btn btn-default" href="{{$article.Slug}}.html#disqus_thread">Leave a comment!</a></p>
+{{$article.HTML $article.Content}}
+<p class="text-right"><a class="btn btn-default" href="{{$article.Slug}}#disqus_thread">Leave a comment!</a></p>
 </article>
 <hr>
 {{end}}
@@ -40,7 +40,7 @@
 <hr>
 {{end}}
 
-{{if .NumberOfPages}}
+{{if .Site.NumberOfPages}}
 <div class="text-center"><ul class="pagination">
 
     <li class="
@@ -48,7 +48,7 @@
     disabled
     {{end}}
     ">
-    <a href="{{$.GetPreviousPageSlug $.PageNumber}}">&laquo;</a>
+    <a href="{{$.PreviousSlug $.PageNumber}}">&laquo;</a>
     </li>
 
     {{range $_, $page := .ArrayOfPages}}
@@ -60,11 +60,11 @@
     {{end}} {{/* range */}}
 
     <li class="
-    {{if eq $.PageNumber $.NumberOfPages}}
+    {{if eq $.PageNumber $.Site.NumberOfPages}}
     disabled
     {{end}}
     ">
-    <a href="{{$.GetNextPageSlug $.PageNumber}}">&raquo;</a>
+    <a href="{{$.NextSlug $.PageNumber}}">&raquo;</a>
     </li>
 
 </ul></div>

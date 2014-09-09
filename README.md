@@ -36,7 +36,7 @@ This will create a binary for you called `polo`:
 
 If you want try it with the examples:
 
-    $ go run main.go -input examples -output /tmp/test -daemon
+    $ polo -input examples -output /tmp/test -daemon
 
 And now, you can go to http://localhost:8080 and see your generated blog.
 
@@ -103,20 +103,38 @@ Templating
 
 This functionality is in a kinda early stage. I think, that we will need to
 split the templates in much more files, and this way we will be able to
-override them quite easily, but that will require some work (PRs welcomed!) :)
+override them quite easily, but that will require some work (PRs welcomed! :)
 
-You have a default theme on `templates/`, but you can create your own themes
-creating the same folder struct in your page. Polo will default always to this
-base theme (which is included on the binary).
+### Creating your own theme
 
-Example: imagine that you have your markdown files on `$HOME/site`. You could
-create a file `$HOME/site/templates/article.html` which would override our
-default template for article rendering.
+You have a default theme on `templates/`. If you just installed polo this theme
+is going to be part of the binary but it can be override.
+
+In case that you want to override the theme, you don't need to provide ALL the
+files. Just providing the ones that you are overriding is more than enough.
+
+For example, imaging that you want to override the header to use another
+bootstrap theme:
+
+1. Wherever you want (but it needs to be the same place where you run polo
+   from) you create the folder `templates/base`.
+2. Then you edit `templates/base/header.html`, adding the following content:
+
+````html
+{{define "header"}}
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+  <link
+    href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"
+    rel="stylesheet">
+{{end}}
+````
+
+3. Now you run polo from the folder that owns `templates/` and
+4. PROFIT!
+
+### Modifying the one that is going to be included on the binary.
 
 If you want to do changes on the default theme, you need to remember that you
-need to recreate the binary data, you should do it this way:
+MUST recreate the binary data, you should do it this way:
 
-	go-bindata -o templates/bindata.go \
-            -pkg=templates \
-            -ignore=bindata.go \
-            templates templates/base
+    go-bindata -o templates/bindata.go -pkg=templates -ignore=bindata.go templates/...

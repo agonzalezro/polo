@@ -1,12 +1,12 @@
 {{define "title"}}
-{{.Category}} | {{.Config.Title}}
+{{.Category}} | {{.Site.Config.Title}}
 {{end}}
 
 {{define "content"}}
 <h1>{{.Category}}</h1>
 <ul>
-  {{range $_, $article := .ArticlesByCategory .Category}}
-  <li><a href="/{{$article.Slug}}.html">{{$article.Title}}</a></li>
+  {{range $_, $article := .Articles}}
+  <li><a href="{{$article.Slug}}">{{$article.Title}}</a></li>
   {{end}}
 </ul>
 {{end}}

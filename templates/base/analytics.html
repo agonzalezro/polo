@@ -1,8 +1,8 @@
 {{define "analytics"}}
-  {{if .Config.GoogleAnalyticsId}}
+  {{if .Site.Config.GoogleAnalyticsID}}
   <script type="text/javascript">
     var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', '{{.Config.GoogleAnalyticsId}}']);
+    _gaq.push(['_setAccount', '{{.Site.Config.GoogleAnalyticsID}}']);
     _gaq.push(['_trackPageview']);
 
     (function() {

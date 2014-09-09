@@ -4,5 +4,5 @@ go:
 
 script:
  - go get github.com/agonzalezro/polo
- - cd $HOME/gopath/src/github.com/agonzalezro/polo/generator
+ - cd $HOME/gopath/src/github.com/agonzalezro/polo
  - go test -v ./...

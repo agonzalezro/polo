@@ -1,17 +1,17 @@
 {{define "title"}}
-{{.Article.Title}} | {{.Config.Title}}
+{{.Article.Title}} | {{.Site.Config.Title}}
 {{end}}
 
 {{define "content"}}
 <h1>{{.Article.Title}}</h1>
 
 <p>
-{{if .Config.Author }}
-<span class="label label-default">by {{.Config.Author}}</span>
+{{if .Site.Config.Author }}
+<span class="label label-default">by {{.Site.Config.Author}}</span>
 {{end}}
 
 {{if .Article.Date}}
-<span class="label label-default">{{.Article.Date}}</span>
+<span class="label label-default">{{.HumanizeDatetime .Article.Date}}</span>
 {{end}}
 
 {{if .Article.Category}}
@@ -25,15 +25,15 @@
 {{end}}
 </p>
 
-{{.Article.Html .Article.Content}}
-{{if .Config.DisqusSitename}}
+{{.Article.HTML .Article.Content}}
+{{if .Site.Config.DisqusSitename}}
 <h2>Comments</h2>
 <div id="disqus_thread"></div>
 <script type="text/javascript">
-  var disqus_shortname = '{{.Config.DisqusSitename}}';
+  var disqus_shortname = '{{.Site.Config.DisqusSitename}}';
   // TODO (agonzalezro): Compatibility with my old blog articles
   // I don't know if it will work for other users
-  var disqus_identifier = '{{.Article.Slug}}.html';
+  var disqus_identifier = '{{.Article.Slug}}';
 
   (function() {
     var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

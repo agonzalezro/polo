@@ -6,7 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/agonzalezro/polo/generator"
+	"github.com/agonzalezro/polo/config"
+	"github.com/agonzalezro/polo/site"
 )
 
 func main() {
@@ -24,20 +25,15 @@ func main() {
 	)
 	flag.Parse()
 
-	db, err := generator.NewDB()
-	if err != nil {
-		log.Panic(err)
-	}
-	if err := db.Fill(*inputPath); err != nil {
-		log.Panic(err)
-	}
-
-	config, err := generator.ParseConfigFile(*configFile)
+	config, err := config.New(*configFile)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	site := generator.NewSite(*db, *config, *outputPath)
+	site := site.New(*config, *outputPath)
+	if err := site.Populate(*inputPath); err != nil {
+		log.Panic(err)
+	}
 	if err := site.Write(); err != nil {
 		log.Panic(err)
 	}
