@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>{{.Config.Title}}</title>
-  <link href="{{.Config.URL}}" />
+  <title>{{.Site.Config.Title}}</title>
+  <link href="{{.Site.Config.URL}}" />
   <updated>{{.Updated}}</updated>
 
-  {{if .FeedArticles}}
-  {{range $_, $article := .FeedArticles}}
+  {{if .Articles}}
+  {{range $_, $article := .Articles}}
   <entry>
     <title>{{$article.Title}}</title>
-    <link href="{{$.Config.URL}}/{{$article.Slug}}.html" />
+    <link href="{{$.Site.Config.URL}}{{$article.Slug}}" />
     {{if $article.Date}}
     <updated>{{$article.Date}}</updated>
     {{end}}
     <summary>
-      {{$article.Html $article.Summary}}
+      {{$article.HTML $article.Summary}}
     </summary>
     <author>
-      <name>{{$.Config.Author}}</name>
+      <name>{{$.Site.Config.Author}}</name>
     </author>
   </entry>
   {{end}}

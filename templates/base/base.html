@@ -9,8 +9,8 @@
     <title>{{template "title" .}}</title>
 
     <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Sitewide ATOM Feed">
-    {{if .Config.Favicon}}
-    <link rel="shortcut icon" href="{{.Config.Favicon}}" />
+    {{if .Site.Config.Favicon}}
+    <link rel="shortcut icon" href="{{.Site.Config.Favicon}}" />
     {{end}}
 
     {{template "header" .}}
@@ -26,27 +26,27 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">{{.Config.Title}}</a>
+          <a class="navbar-brand" href="/">{{.Site.Config.Title}}</a>
         </div>
-        {{if or .Pages (and .Tags .Config.ShowTags) (and .Categories .Config.ShowCategories) (and .Articles .Config.ShowArchive)}}
+        {{if or .Site.Pages (and .Site.Tags .Site.Config.ShowTags) (and .Site.Categories .Site.Config.ShowCategories) (and .Site.Articles .Site.Config.ShowArchive)}}
         <div class="navbar-collapse collapse">
-          {{if or .Pages (and .Articles .Config.ShowArchive)}}
+          {{if or .Site.Pages (and .Site.Articles .Site.Config.ShowArchive)}}
           <ul class="nav navbar-nav">
-            {{if .Config.ShowArchive}}
+            {{if .Site.Config.ShowArchive}}
             <li><a href="/archives.html">Archives</a></li>
             {{end}}
-            {{range $_, $page := .Pages}}
-            <li><a href="/pages/{{$page.Slug}}.html">{{$page.Title}}</a></li>
+            {{range $_, $page := .Site.Pages}}
+            <li><a href="{{$page.Slug}}">{{$page.Title}}</a></li>
             {{end}}
           </ul>
           {{ end }}
-          {{if or (and .Categories .Config.ShowCategories) (and .Tags .Config.ShowTags)}}
+          {{if or (and .Site.Categories .Site.Config.ShowCategories) (and .Site.Tags .Site.Config.ShowTags)}}
           <ul class="nav navbar-nav navbar-right">
-            {{if and .Categories .Config.ShowCategories}}
+            {{if and .Site.Categories .Site.Config.ShowCategories}}
             <li class="dropdown">
             <a href="#" data-toggle="dropdown">Categories <b class="caret"></b></a>
             <ul class="dropdown-menu">
-              {{range $_, $category := .Categories}}
+              {{range $_, $category := .Site.Categories}}
               {{$articles := $.ArticlesByCategory $category}}
               <li>
               <a href="/category/{{$category}}.html">{{$category}} <span class="badge pull-right">{{len $articles}}</span></a>
@@ -55,11 +55,11 @@
             </ul>
             </li>
             {{end}}
-            {{if and .Tags .Config.ShowTags}}
+            {{if and .Site.Tags .Site.Config.ShowTags}}
             <li class="dropdown">
             <a href="#" data-toggle="dropdown">Tags <b class="caret"></b></a>
             <ul class="dropdown-menu">
-              {{range $_, $tag := .Tags}}
+              {{range $_, $tag := .Site.Tags}}
               {{$articles := $.ArticlesByTag $tag}}
               <li>
               <a href="/tag/{{$tag}}.html">{{$tag}} <span class="badge pull-right">{{len $articles}}</span></a>

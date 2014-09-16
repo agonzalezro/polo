@@ -1,4 +1,4 @@
-package generator
+package site
 
 import (
 	"fmt"
@@ -11,6 +11,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/agonzalezro/polo/context"
+	"github.com/agonzalezro/polo/file"
+
 	// TODO: Perhaps it worth moving the template rendering to the template
 	// package
 	assets "github.com/agonzalezro/polo/templates"
@@ -18,7 +21,7 @@ import (
 
 var templates map[string]*template.Template
 
-// parsedFiles is a wrapper similar to template.ParseFiles that is going to
+// parseFiles is a wrapper similar to template.ParseFiles that is going to
 // load the templates from the disk, and if they can not be found from the
 // go-bindata file.
 func parseFiles(filenames ...string) (*template.Template, error) {
@@ -106,13 +109,18 @@ func (site Site) Write() (err error) {
 	var wg sync.WaitGroup
 	chErrors := make(chan error, 12) // Enough buffer for all the subroutines
 
-	// TODO: this is a crappy way of forcing the cache on the queries.
-	// See: https://github.com/agonzalezro/polo/issues/23
-	i, err := site.writeIndexes()
-	fmt.Println(logCreation("index page", i))
-	chErrors <- err
+	wg.Add(4) // The following 4 subroutines are mandatory
 
-	wg.Add(3) // The following 4 subroutines are mandatory
+	go func() {
+		defer wg.Done()
+		i, err := site.writeIndexes()
+		fmt.Println(logCreation("index page", i))
+		if err != nil {
+			log.Panic(err)
+		}
+		chErrors <- err
+	}()
+
 	go func() {
 		defer wg.Done()
 		i, err := site.writeFeeds()
@@ -179,95 +187,84 @@ LOOP:
 	return nil
 }
 
-func (site Site) getNumberOfPages() (int, error) {
-	articles, err := site.articles()
-	if err != nil {
-		return 0, err
-	}
-	if site.NumberOfPages == 0 {
-		site.NumberOfPages = len(articles) / site.Config.PaginationSize
-	}
-	// If it continue being 0, we don't have pages
-	if site.NumberOfPages == 0 {
-		site.NumberOfPages = -1
-	}
-	return site.NumberOfPages, nil
+func (site Site) getNumberOfPages() int {
+	return len(site.Articles) / site.Config.PaginationSize
 }
 
 func (site Site) writeIndexes() (int, error) {
-	nop, err := site.getNumberOfPages()
-	if err != nil {
-		return 0, nil
-	}
-	site.NumberOfPages = nop
+	var pageNumber int
 
-	for site.PageNumber = 1; site.PageNumber <= site.NumberOfPages; site.PageNumber++ {
+	for pageNumber = 1; pageNumber <= site.getNumberOfPages(); pageNumber++ {
 		indexFile := "index.html"
-		if site.PageNumber > 1 {
-			indexFile = fmt.Sprintf("index%d.html", site.PageNumber)
+		if pageNumber > 1 {
+			indexFile = fmt.Sprintf("index%d.html", pageNumber)
 		}
 
 		file, err := site.createAbsolutePath(indexFile)
 		if err != nil {
-			return site.PageNumber, err
+			return pageNumber, err
 		}
 
-		if err := templates["index"].ExecuteTemplate(file, "base", site); err != nil {
-			return site.PageNumber, err
+		if err := templates["index"].ExecuteTemplate(file, "base", site.NewPaginatedContext(pageNumber)); err != nil {
+			return pageNumber, err
 		}
 	}
 
-	return site.PageNumber, nil
+	return pageNumber, nil
 }
 
-func (site Site) writeParsedFiles(pathAppender string, files []*ParsedFile) (int, error) {
+type contextCreator func(f file.ParsedFile) *context.Context
+
+func (site Site) writeparsedFiles(
+	files []*file.ParsedFile, template *template.Template, newContext contextCreator) (int, error) {
+
 	var (
 		i          int
-		parsedFile *ParsedFile
+		parsedFile *file.ParsedFile
+		wg         sync.WaitGroup
 	)
+	errChan := make(chan error, len(files))
 
 	for i, parsedFile = range files {
-		i++
-		var template *template.Template
-		if files[0].isPage {
-			template = templates["page"]
-		} else {
-			template = templates["article"]
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 
-		filePath := fmt.Sprintf("%s/%s.html", pathAppender, parsedFile.Slug)
-		file, err := site.createAbsolutePath(filePath)
+			file, err := site.createAbsolutePath(parsedFile.Slug)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+			context := newContext(*parsedFile)
+			if err := template.ExecuteTemplate(file, "base", context); err != nil {
+				errChan <- err
+				return
+			}
+		}()
+	}
+
+	wg.Wait()
+	i++
+
+	select {
+	case err := <-errChan:
 		if err != nil {
 			return i, err
 		}
-
-		if files[0].isPage {
-			site.Page = *parsedFile
-		} else {
-			site.Article = *parsedFile
-		}
-		if err := template.ExecuteTemplate(file, "base", site); err != nil {
-			return i, err
-		}
+	default:
+		break
 	}
 
 	return i, nil
 }
 
 func (site Site) writeArticles() (int, error) {
-	articles, err := site.articles()
-	if err != nil {
-		return 0, err
-	}
-	return site.writeParsedFiles("/", articles)
+	return site.writeparsedFiles(site.Articles, templates["article"], site.NewArticleContext)
 }
 
 func (site Site) writePages() (int, error) {
-	pages, err := site.pages()
-	if err != nil {
-		return 0, err
-	}
-	return site.writeParsedFiles("pages", pages)
+	return site.writeparsedFiles(site.Pages, templates["page"], site.NewPageContext)
 }
 
 func (site Site) writeArchive() error {
@@ -276,7 +273,7 @@ func (site Site) writeArchive() error {
 		return err
 	}
 
-	if err := templates["archives"].ExecuteTemplate(file, "base", site); err != nil {
+	if err := templates["archives"].ExecuteTemplate(file, "base", site.NewContext()); err != nil {
 		return err
 	}
 
@@ -287,24 +284,40 @@ func (site Site) writeCategories() (int, error) {
 	var (
 		i        int
 		category string
+		wg       sync.WaitGroup
 	)
 
-	categories, err := site.categories()
-	if err != nil {
-		return 0, err
+	errChan := make(chan error, len(site.Categories))
+
+	for i, category = range site.Categories {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			categoryFile := fmt.Sprintf("category/%s.html", category)
+			file, err := site.createAbsolutePath(categoryFile)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+			if err := templates["category"].ExecuteTemplate(file, "base", site.NewCategoryContext(category)); err != nil {
+				errChan <- err
+				return
+			}
+		}()
 	}
-	for i, category = range categories {
-		i++
-		categoryFile := fmt.Sprintf("category/%s.html", category)
-		file, err := site.createAbsolutePath(categoryFile)
+
+	wg.Wait()
+	i++
+
+	select {
+	case err := <-errChan:
 		if err != nil {
 			return i, err
 		}
-
-		site.Category = category
-		if err := templates["category"].ExecuteTemplate(file, "base", site); err != nil {
-			return i, err
-		}
+	default:
+		break
 	}
 
 	return i, nil
@@ -314,24 +327,39 @@ func (site Site) writeTags() (int, error) {
 	var (
 		i   int
 		tag string
+		wg  sync.WaitGroup
 	)
+	errChan := make(chan error, len(site.Tags))
 
-	tags, err := site.tags()
-	if err != nil {
-		return 0, err
+	for i, tag = range site.Tags {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			tagFile := fmt.Sprintf("tag/%s.html", tag)
+			file, err := site.createAbsolutePath(tagFile)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+			if err := templates["tag"].ExecuteTemplate(file, "base", site.NewTagContext(tag)); err != nil {
+				errChan <- err
+				return
+			}
+		}()
 	}
-	for i, tag = range tags {
-		i++
-		tagFile := fmt.Sprintf("tag/%s.html", tag)
-		file, err := site.createAbsolutePath(tagFile)
+
+	wg.Wait()
+	i++
+
+	select {
+	case err := <-errChan:
 		if err != nil {
 			return i, err
 		}
-
-		site.Tag = tag
-		if err := templates["tag"].ExecuteTemplate(file, "base", site); err != nil {
-			return i, err
-		}
+	default:
+		break
 	}
 
 	return i, nil
@@ -348,7 +376,7 @@ func (site Site) writeFeeds() (int, error) {
 		return i + 1, err
 	}
 
-	i += 1 // Not implemented yet, fake it
+	i++ // Not implemented yet, fake it
 	return i, nil
 }
 
@@ -358,16 +386,12 @@ func (site Site) writeAtomFeed() error {
 		return err
 	}
 
-	articles, err := site.articles()
-	if err != nil {
-		return err
-	}
-	limit := len(articles)
-	if limit > 10 {
+	limit := len(site.Articles)
+	if limit > 10 { // TODO: Move feed limit of news to the config
 		limit = 10
 	}
-	site.FeedArticles = articles[:limit] // TODO: do it inside the function
-	if err := templates["atom"].Execute(file, site); err != nil {
+
+	if err := templates["atom"].Execute(file, site.NewAtomFeedContext(limit)); err != nil {
 		return err
 	}
 
