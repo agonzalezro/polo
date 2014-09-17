@@ -219,15 +219,14 @@ func (site Site) writeparsedFiles(
 	files []*file.ParsedFile, template *template.Template, newContext contextCreator) (int, error) {
 
 	var (
-		i          int
 		parsedFile *file.ParsedFile
 		wg         sync.WaitGroup
 	)
 	errChan := make(chan error, len(files))
 
-	for i, parsedFile = range files {
+	for _, parsedFile = range files {
 		wg.Add(1)
-		go func() {
+		go func(parsedFile *file.ParsedFile) {
 			defer wg.Done()
 
 			file, err := site.createAbsolutePath(parsedFile.Slug)
@@ -239,24 +238,22 @@ func (site Site) writeparsedFiles(
 			context := newContext(*parsedFile)
 			if err := template.ExecuteTemplate(file, "base", context); err != nil {
 				errChan <- err
-				return
 			}
-		}()
+		}(parsedFile)
 	}
 
 	wg.Wait()
-	i++
 
 	select {
 	case err := <-errChan:
 		if err != nil {
-			return i, err
+			return -1, err
 		}
 	default:
 		break
 	}
 
-	return i, nil
+	return len(files), nil
 }
 
 func (site Site) writeArticles() (int, error) {
@@ -281,17 +278,12 @@ func (site Site) writeArchive() error {
 }
 
 func (site Site) writeCategories() (int, error) {
-	var (
-		i        int
-		category string
-		wg       sync.WaitGroup
-	)
-
+	var wg sync.WaitGroup
 	errChan := make(chan error, len(site.Categories))
 
-	for i, category = range site.Categories {
+	for _, category := range site.Categories {
 		wg.Add(1)
-		go func() {
+		go func(category string) {
 			defer wg.Done()
 
 			categoryFile := fmt.Sprintf("category/%s.html", category)
@@ -303,37 +295,33 @@ func (site Site) writeCategories() (int, error) {
 
 			if err := templates["category"].ExecuteTemplate(file, "base", site.NewCategoryContext(category)); err != nil {
 				errChan <- err
-				return
 			}
-		}()
+
+			errChan <- nil
+		}(category)
 	}
 
 	wg.Wait()
-	i++
 
 	select {
 	case err := <-errChan:
 		if err != nil {
-			return i, err
+			return -1, err
 		}
 	default:
 		break
 	}
 
-	return i, nil
+	return len(site.Categories), nil
 }
 
 func (site Site) writeTags() (int, error) {
-	var (
-		i   int
-		tag string
-		wg  sync.WaitGroup
-	)
+	var wg sync.WaitGroup
 	errChan := make(chan error, len(site.Tags))
 
-	for i, tag = range site.Tags {
+	for _, tag := range site.Tags {
 		wg.Add(1)
-		go func() {
+		go func(tag string) {
 			defer wg.Done()
 
 			tagFile := fmt.Sprintf("tag/%s.html", tag)
@@ -345,24 +333,24 @@ func (site Site) writeTags() (int, error) {
 
 			if err := templates["tag"].ExecuteTemplate(file, "base", site.NewTagContext(tag)); err != nil {
 				errChan <- err
-				return
 			}
-		}()
+
+			errChan <- nil
+		}(tag)
 	}
 
 	wg.Wait()
-	i++
 
 	select {
 	case err := <-errChan:
 		if err != nil {
-			return i, err
+			return -1, err
 		}
 	default:
 		break
 	}
 
-	return i, nil
+	return len(site.Tags), nil
 }
 
 func (site Site) writeFeeds() (int, error) {
