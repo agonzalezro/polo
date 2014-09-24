@@ -33,13 +33,17 @@ This will create a binary for you called `polo`:
       -output=".": path where you want to creat the html files.
       -port=8080: port where to run the server
 
-### Test
+### Test (or if you are brave, production :)
 
 If you want try it with the examples:
 
     $ polo -input examples -output /tmp/test -daemon
 
 And now, you can go to http://localhost:8080 and see your generated blog.
+
+Every time that you do a change on any of the files inside `examples`, or you
+create/delete files the blog is going to be regenerated and you will just need
+to reload the web.
 
 
 Just markdown!
