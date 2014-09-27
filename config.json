@@ -1,8 +1,8 @@
 {
-  "author": "Álex",
-  "title": "agonzalezro.github.io",
+  "author": "Alexandre González",
+  "title": "polo blog",
 
-  "url": "http://agonzalezro.github.io",
+  "url": "http://example.com",
   "favicon": "/static/favicon.ico",
 
   "showArchive": true,
@@ -11,7 +11,7 @@
 
   "paginationSize": 2,
 
-  "disqusSitename": "agonzalezro",
-  "googleAnalyticsId": "UA-35984509-1",
-  "sharethisPublisher": "db740e9c-f490-4a3f-813a-5d257e1ea7f8"
+  "disqusSitename": "poloChangeThis",
+  "googleAnalyticsId": "UA-12345678-9",
+  "sharethisPublisher": "db740e9c-aaa-bbb-yyyy-5d257e1ea7f8"
 }
