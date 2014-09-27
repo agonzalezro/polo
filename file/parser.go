@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -109,14 +110,16 @@ func (pf *ParsedFile) load(filePath string) error {
 			}
 
 			if pf.Title == "" {
-				pf.Title = line
+				// Needed to remove markdown syntax before storing values on the structs
+				re := regexp.MustCompile("^#+\\s*")
+				pf.Title = re.ReplaceAllString(line, "")
 			}
 			if pf.Slug == "" {
 				prefix := ""
 				if pf.IsPage {
 					prefix = "/pages"
 				}
-				pf.Slug = fmt.Sprintf("%s/%s.html", prefix, utils.Slugify(line))
+				pf.Slug = fmt.Sprintf("%s/%s.html", prefix, utils.Slugify(pf.Title))
 			}
 			pf.scanner.Scan() // We don't want the title underlining
 
