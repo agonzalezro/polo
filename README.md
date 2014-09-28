@@ -18,6 +18,17 @@ How to use it
 
 ### Install
 
+We have 2 ways of doing it, the easiest and the "little bit more complex":
+
+#### Easy way: Download it
+
+Just grab your binary from here http://gobuild.io/github.com/agonzalezro/polo
+and copy it to wherever you want to have it. The binary by itself is all what
+you need, not even a folder with templates unless you want to override the
+defaults.
+
+#### Build it yourself
+
 Let's assume that you have already installed some other Go package, so, you
 already have Go installed and `$GOPATH` in place:
 
@@ -26,18 +37,17 @@ already have Go installed and `$GOPATH` in place:
 This will create a binary for you called `polo`:
 
     $ polo -help
-    Usage of polo:
+    Usage: polo [options] sourcedir outdir
+
       -config="config.json": the settings file to create your site.
       -daemon=false: create a simple HTTP server after the blog is created to see the result
-      -input=".": path to your articles source files.
-      -output=".": path where you want to creat the html files.
       -port=8080: port where to run the server
 
 ### Test (or if you are brave, production :)
 
 If you want try it with the examples:
 
-    $ polo -input examples -output /tmp/test -daemon
+    $ polo -daemon examples /tmp/test
 
 And now, you can go to http://localhost:8080 and see your generated blog.
 

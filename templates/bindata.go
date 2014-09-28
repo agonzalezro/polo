@@ -584,8 +584,6 @@ type _bintree_t struct {
 }
 var _bintree = &_bintree_t{nil, map[string]*_bintree_t{
 	"templates": &_bintree_t{nil, map[string]*_bintree_t{
-		"tag.html": &_bintree_t{templates_tag_html, map[string]*_bintree_t{
-		}},
 		"archives.html": &_bintree_t{templates_archives_html, map[string]*_bintree_t{
 		}},
 		"article": &_bintree_t{nil, map[string]*_bintree_t{
@@ -599,13 +597,13 @@ var _bintree = &_bintree_t{nil, map[string]*_bintree_t{
 		"atom.xml": &_bintree_t{templates_atom_xml, map[string]*_bintree_t{
 		}},
 		"base": &_bintree_t{nil, map[string]*_bintree_t{
-			"analytics.html": &_bintree_t{templates_base_analytics_html, map[string]*_bintree_t{
-			}},
 			"base.html": &_bintree_t{templates_base_base_html, map[string]*_bintree_t{
 			}},
 			"footer.html": &_bintree_t{templates_base_footer_html, map[string]*_bintree_t{
 			}},
 			"header.html": &_bintree_t{templates_base_header_html, map[string]*_bintree_t{
+			}},
+			"analytics.html": &_bintree_t{templates_base_analytics_html, map[string]*_bintree_t{
 			}},
 		}},
 		"category.html": &_bintree_t{templates_category_html, map[string]*_bintree_t{
@@ -613,6 +611,8 @@ var _bintree = &_bintree_t{nil, map[string]*_bintree_t{
 		"index.html": &_bintree_t{templates_index_html, map[string]*_bintree_t{
 		}},
 		"page.html": &_bintree_t{templates_page_html, map[string]*_bintree_t{
+		}},
+		"tag.html": &_bintree_t{templates_tag_html, map[string]*_bintree_t{
 		}},
 	}},
 }}

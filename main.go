@@ -7,10 +7,17 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/agonzalezro/polo/config"
 	"github.com/agonzalezro/polo/site"
+)
+
+var (
+	configFile string
+	daemon     bool
+	port       int
 )
 
 func getAllSubdirectories(parentPath string) (paths []string, err error) {
@@ -27,9 +34,9 @@ func getAllSubdirectories(parentPath string) (paths []string, err error) {
 	return paths, err
 }
 
-func writeSite(config config.Config, inputPath string, outputPath string) error {
-	s := site.New(config, outputPath)
-	if err := s.Populate(inputPath); err != nil {
+func writeSite(config config.Config, sourcedir string, outdir string) error {
+	s := site.New(config, outdir)
+	if err := s.Populate(sourcedir); err != nil {
 		return err
 	}
 	if err := s.Write(); err != nil {
@@ -38,30 +45,38 @@ func writeSite(config config.Config, inputPath string, outputPath string) error 
 	return nil
 }
 
-func main() {
-	var (
-		inputPath = flag.String("input", ".",
-			"path to your articles source files.")
-		outputPath = flag.String("output", ".",
-			"path where you want to creat the html files.")
-		configFile = flag.String("config", "config.json",
-			"the settings file to create your site.")
-		daemon = flag.Bool("daemon", false,
-			"create a simple HTTP server after the blog is created to see the result")
-		port = flag.Int("port", 8080,
-			"port where to run the server")
-	)
-	flag.Parse()
+func init() {
+	flag.StringVar(&configFile, "config", "config.json", "the settings file to create your site.")
+	flag.BoolVar(&daemon, "daemon", false, "create a simple HTTP server after the blog is created to see the result")
+	flag.IntVar(&port, "port", 8080, "port where to run the server")
 
-	config, err := config.New(*configFile)
+	flag.Usage = func() {
+		fmt.Fprintf(
+			os.Stderr, "Usage: %s [options] sourcedir outdir\n\n",
+			path.Base(os.Args[0]))
+		flag.PrintDefaults()
+	}
+}
+
+func main() {
+	flag.Parse()
+	if flag.NArg() != 2 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	sourcedir := flag.Arg(0)
+	outdir := flag.Arg(1)
+
+	config, err := config.New(configFile)
 	if err != nil {
 		log.Panic(err)
 	}
-	if err := writeSite(*config, *inputPath, *outputPath); err != nil {
+	if err := writeSite(*config, sourcedir, outdir); err != nil {
 		log.Fatal(err)
 	}
 
-	if *daemon {
+	if daemon {
 		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
 			log.Fatal(err)
@@ -74,7 +89,7 @@ func main() {
 				case event := <-watcher.Events:
 					if event.Op != fsnotify.Chmod {
 						log.Println("Rewriting the site")
-						if err := writeSite(*config, *inputPath, *outputPath); err != nil {
+						if err := writeSite(*config, sourcedir, outdir); err != nil {
 							log.Fatal(err)
 						}
 					}
@@ -84,7 +99,7 @@ func main() {
 			}
 		}()
 
-		paths, err := getAllSubdirectories(*inputPath)
+		paths, err := getAllSubdirectories(sourcedir)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -92,9 +107,9 @@ func main() {
 			watcher.Add(path)
 		}
 
-		addr := fmt.Sprintf(":%d", *port)
+		addr := fmt.Sprintf(":%d", port)
 		log.Printf("Static server created on address %s\n", addr)
 		log.Fatal(
-			http.ListenAndServe(addr, http.FileServer(http.Dir(*outputPath))))
+			http.ListenAndServe(addr, http.FileServer(http.Dir(outdir))))
 	}
 }
