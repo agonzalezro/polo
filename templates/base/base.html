@@ -14,6 +14,14 @@
     {{end}}
 
     {{template "header" .}}
+
+    {{if .Site.Config.ShareThisPublisher}}
+    <script type="text/javascript">var switchTo5x=true;</script>
+    <script type="text/javascript" src="http://w.sharethis.com/button/buttons.js"></script>
+    <script type="text/javascript">
+      stLight.options({publisher: "{{.Site.Config.ShareThisPublisher}}", doNotHash: false, doNotCopy: false, hashAddressBar: false});
+    </script>
+    {{end}}
   </head>
 
   <body>

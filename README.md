@@ -101,6 +101,8 @@ This is what you can configure there:
 
 - **disqusSitename**: if you want comments on your blog.
 - **googleAnalyticsId**: the Google Analytics ID.
+- **shareThisPublisher**: the ShareThis publisher ID. If provided, there will
+  be some social buttons on the article view.
 
 
 Templating

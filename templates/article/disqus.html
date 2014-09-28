@@ -1,32 +1,4 @@
-{{define "title"}}
-{{.Article.Title}} | {{.Site.Config.Title}}
-{{end}}
-
-{{define "content"}}
-<h1>{{.Article.Title}}</h1>
-
-<p>
-{{if .Site.Config.Author }}
-<span class="label label-default">by {{.Site.Config.Author}}</span>
-{{end}}
-
-{{if .Article.Date}}
-<span class="label label-default">{{.HumanizeDatetime .Article.Date}}</span>
-{{end}}
-
-{{if .Article.Category}}
-<a class="label label-success" href="/category/{{.Article.Category}}.html">{{.Article.Category}}</a>
-{{end}}
-
-{{if .Article.Tags}}
-{{range $_, $tag := .Article.Tags}}
-<a class="label label-info" href="/tag/{{$tag}}.html">{{$tag}}</a>
-{{end}}
-{{end}}
-</p>
-
-{{.Article.HTML .Article.Content}}
-{{if .Site.Config.DisqusSitename}}
+{{define "disqus"}}
 <h2>Comments</h2>
 <div id="disqus_thread"></div>
 <script type="text/javascript">
@@ -43,5 +15,4 @@
 </script>
 <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-{{end}}
 {{end}}

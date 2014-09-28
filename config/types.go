@@ -21,7 +21,7 @@ type Config struct {
 
 	DisqusSitename     string
 	GoogleAnalyticsID  string
-	SharethisPublisher string
+	ShareThisPublisher string
 }
 
 // ErrorOpeningConfigFile will be raised when the file doesn't exist.
