@@ -2,7 +2,7 @@ polo
 ====
 
 [![Build Status](https://travis-ci.org/agonzalezro/polo.png)](https://travis-ci.org/agonzalezro/polo)
-[![Gobuild Download](http://gobuild.io/badge/github.com/agonzalezro/polo/download.png)](http://gobuild.io/github.com/agonzalezro/polo)
+[![Gobuild Download](https://img.shields.io/badge/gobuild-download-green.svg?style=flat)](http://gobuild.io/github.com/agonzalezro/polo)
 
 polo is a static blog rendering tool created with Golang.
 
