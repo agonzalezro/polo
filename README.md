@@ -63,9 +63,12 @@ I am using markdown only. Whatever thing that is supported by [blackfriday
 library](https://github.com/russross/blackfriday) is supported here. The only
 difference is that I am adding some metadata to the files.
 
-This metadata is using exactly the same format than the one used on Pelican,
-but we don't care about all of it (if you do, let me know and I can think on
-adding it). Supported tags:
+This metadata is using exactly the same format than the one used on Pelican or
+Jekyll, but we don't support exactly the same keys. If you thing that some of
+the keys that they support and we don't are needed, please, [create an
+issue](https://github.com/agonzalezro/polo/issues/new) or send a pull request.
+
+Supported tags:
 
 - **title**: if it's not on the metadata info, the first line is going to be
   used to create it.
@@ -77,7 +80,7 @@ adding it). Supported tags:
   is not defined.
 - **author**: this will override the default author in the config file.
 
-This is one auto explainable example:
+This is one auto explainable example (Pelican):
 
     Title: My super title
     Date: 2010-12-03 10:20
@@ -87,8 +90,21 @@ This is one auto explainable example:
 
     And here is just the content.
 
-In this case we are overriding the title and the slug.
+In this case we are overriding the title, slug & author.
 
+If you prefer to do it with Jekyll, or you are migrating a Jekyll page:
+
+    ---
+    title: My super title
+    date: 2010-12-03 10:20
+    tags: thats, awesome
+    slug: my-super-post
+    author: Federico
+    ---
+
+    And here is just the content.
+
+The keys are case insensitive in both cases.
 
 Configuration
 -------------
