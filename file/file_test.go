@@ -12,9 +12,9 @@ func fail(t *testing.T, name string, got interface{}, expected interface{}) {
 	t.Error(name, "was not the expected.\n\tgot:", got, "\n\texpected:", expected)
 }
 
-// Test that the metadata is generated properly following the Pelican standards
-// for it
-func TestMetadataGeneration(t *testing.T) {
+// Test that the metadata is parsed properly following the Pelican standards
+// for it, that means. Check the examples/ folder for more info about them.
+func TestPelicanMetadataParsing(t *testing.T) {
 	timeLayout := "2006-01-02 15:04"
 
 	expectedTitle := "My super title"
@@ -49,5 +49,23 @@ func TestMetadataGeneration(t *testing.T) {
 	pf.scanner.Scan()
 	if pf.scanner.Text() != expectedText {
 		t.Errorf("This line should be here!")
+	}
+}
+
+// Test that the metadata is parsed properly when the standard used for it is
+// the Jekyll standard (enclosed between '---' lines).
+func TestJekyllMetadataParsing(t *testing.T) {
+	expectedTitle := "jekyll test"
+
+	content := fmt.Sprintf(
+		"---\nTitle:%s\n---This is the content", expectedTitle)
+
+	pf := ParsedFile{
+		scanner: bufio.NewScanner(strings.NewReader(content)),
+	}
+	pf.parseMetadata()
+
+	if pf.Title != expectedTitle {
+		fail(t, "Title", pf.Title, expectedTitle)
 	}
 }

@@ -37,6 +37,13 @@ func (pf *ParsedFile) parseMetadata() (hasMetadata bool, err error) {
 		value := strings.Trim(strings.Join(metadataSplited[1:], ":"), " ")
 
 		switch key {
+		case "---":
+			// If the metadata is enclosed between lines like this: '---'
+			// (Jekyll style) we need to return after process it.
+			if hasMetadata == true {
+				return true, nil
+			}
+			hasMetadata = true
 		case "tags":
 			// Remove all the spaces between comma and tag and
 			// add one comma at the beginning and other at the end, this will
