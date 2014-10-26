@@ -32,6 +32,10 @@ func (pf *ParsedFile) parseMetadata() (hasMetadata bool, err error) {
 	for pf.scanner.Scan() {
 		line := pf.scanner.Text()
 
+		// In case that the metadata starts like :date:
+		if strings.HasPrefix(line, ":") {
+			line = line[1:]
+		}
 		metadataSplited := strings.Split(line, ":")
 		key := strings.ToLower(metadataSplited[0])
 		value := strings.Trim(strings.Join(metadataSplited[1:], ":"), " ")
