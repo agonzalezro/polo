@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"path"
 	"path/filepath"
@@ -187,7 +188,9 @@ LOOP:
 }
 
 func (site Site) getNumberOfPages() int {
-	return len(site.Articles) / site.Config.PaginationSize
+	return int(
+		math.Ceil(
+			float64(len(site.Articles)) / float64(site.Config.PaginationSize)))
 }
 
 func (site Site) writeIndexes() (int, error) {
