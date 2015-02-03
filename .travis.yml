@@ -1,8 +1,0 @@
-language: go
-go:
- - release
-
-script:
- - go get github.com/agonzalezro/polo
- - cd $HOME/gopath/src/github.com/agonzalezro/polo
- - go test -v ./...
