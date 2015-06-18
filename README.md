@@ -12,7 +12,6 @@ works fine :)
 Yes, I know that there a lot of them out there but I just want mine to learn a
 little bit of Go coding.
 
-
 How to use it
 -------------
 
@@ -171,3 +170,10 @@ If you want to do changes on the default theme, you need to remember that you
 MUST recreate the binary data, you should do it this way:
 
     go-bindata -o templates/bindata.go -pkg=templates -ignore=bindata.go templates/...
+
+Auto deploy
+-----------
+
+You can use your favourite CI/CD platform to generate the sites. I wrote a blog
+post about how to do it with [CircleCI](http://circleci.com) here:
+http://agonzalezro.github.io/how-to-automagically-generate-your-polo-blog-with-circleci.html
