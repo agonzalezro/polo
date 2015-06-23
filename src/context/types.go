@@ -1,8 +1,8 @@
 package context
 
 import (
-	"github.com/agonzalezro/polo/config"
-	"github.com/agonzalezro/polo/file"
+	"config"
+	"file"
 )
 
 // Context stores the temporal context needed to render a page.

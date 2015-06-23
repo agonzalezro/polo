@@ -3,8 +3,8 @@ package site
 import (
 	"time"
 
-	"github.com/agonzalezro/polo/context"
-	"github.com/agonzalezro/polo/file"
+	"context"
+	"file"
 )
 
 func (s Site) newSiteContext() context.SiteContext {

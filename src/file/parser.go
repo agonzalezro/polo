@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agonzalezro/polo/utils"
+	"utils"
 )
 
 func parseData(value string) (t time.Time, err error) {

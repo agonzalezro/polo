@@ -12,12 +12,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/agonzalezro/polo/context"
-	"github.com/agonzalezro/polo/file"
+	"context"
+	"file"
 
 	// TODO: Perhaps it worth moving the template rendering to the template
 	// package
-	assets "github.com/agonzalezro/polo/templates"
+	assets "templates"
 )
 
 var templates map[string]*template.Template

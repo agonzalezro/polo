@@ -10,8 +10,8 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/agonzalezro/polo/config"
-	"github.com/agonzalezro/polo/site"
+	"config"
+	"site"
 )
 
 var (

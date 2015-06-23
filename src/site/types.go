@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/agonzalezro/polo/config"
-	"github.com/agonzalezro/polo/file"
+	"config"
+	"file"
 )
 
 // Site is the struct that we will during the execution of the program. It will

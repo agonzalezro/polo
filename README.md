@@ -1,9 +1,6 @@
 polo
 ====
 
-[![circleci](https://circleci.com/gh/agonzalezro/polo.png)](https://circleci.com/gh/agonzalezro/polo)
-[![Gobuild Download](https://img.shields.io/badge/gobuild-download-green.svg?style=flat)](http://gobuild.io/github.com/agonzalezro/polo)
-
 polo is a static blog rendering tool created with Golang.
 
 I'm happily using it on my blog: http://agonzalezro.github.io, which means that

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/agonzalezro/polo/file"
+	"file"
 )
 
 // ArticlesByPage returns the articles of the site paginated.

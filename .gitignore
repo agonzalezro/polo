@@ -21,11 +21,6 @@ _testmain.go
 
 *.exe
 
-bin/
-/src
-/generator/src
-/pkg
-
 /*.html
 /pages/
 /feeds/
@@ -33,4 +28,8 @@ bin/
 /category/
 
 .DS_Store
-polo
+
+# getgb.io
+bin/
+pkg/
+vendor/

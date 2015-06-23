@@ -1,0 +1,93 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{template "title" .}}</title>
+
+    <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Sitewide ATOM Feed">
+    {{if .Site.Config.Favicon}}
+    <link rel="shortcut icon" href="{{.Site.Config.Favicon}}" />
+    {{end}}
+
+    {{template "header" .}}
+
+    {{if .Site.Config.ShareThisPublisher}}
+    <script type="text/javascript">var switchTo5x=true;</script>
+    <script type="text/javascript" src="//w.sharethis.com/button/buttons.js"></script>
+    <script type="text/javascript">
+      stLight.options({publisher: "{{.Site.Config.ShareThisPublisher}}", doNotHash: false, doNotCopy: false, hashAddressBar: false});
+    </script>
+    {{end}}
+  </head>
+
+  <body>
+    <div class="navbar navbar-default navbar-static-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">{{.Site.Config.Title}}</a>
+        </div>
+        {{if or .Site.Pages (and .Site.Tags .Site.Config.ShowTags) (and .Site.Categories .Site.Config.ShowCategories) (and .Site.Articles .Site.Config.ShowArchive)}}
+        <div class="navbar-collapse collapse">
+          {{if or .Site.Pages (and .Site.Articles .Site.Config.ShowArchive)}}
+          <ul class="nav navbar-nav">
+            {{if .Site.Config.ShowArchive}}
+            <li><a href="/archives.html">Archives</a></li>
+            {{end}}
+            {{range $_, $page := .Site.Pages}}
+            <li><a href="{{$page.Slug}}">{{$page.Title}}</a></li>
+            {{end}}
+          </ul>
+          {{ end }}
+          {{if or (and .Site.Categories .Site.Config.ShowCategories) (and .Site.Tags .Site.Config.ShowTags)}}
+          <ul class="nav navbar-nav navbar-right">
+            {{if and .Site.Categories .Site.Config.ShowCategories}}
+            <li class="dropdown">
+            <a href="#" data-toggle="dropdown">Categories <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              {{range $_, $category := .Site.Categories}}
+              {{$articles := $.ArticlesByCategory $category}}
+              <li>
+              <a href="/category/{{$category}}.html">{{$category}} <span class="badge pull-right">{{len $articles}}</span></a>
+              </li>
+              {{end}}
+            </ul>
+            </li>
+            {{end}}
+            {{if and .Site.Tags .Site.Config.ShowTags}}
+            <li class="dropdown">
+            <a href="#" data-toggle="dropdown">Tags <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              {{range $_, $tag := .Site.Tags}}
+              {{$articles := $.ArticlesByTag $tag}}
+              <li>
+              <a href="/tag/{{$tag}}.html">{{$tag}} <span class="badge pull-right">{{len $articles}}</span></a>
+              </li>
+              {{end}}
+            </ul>
+            </li>
+            {{end}}
+          </ul>
+          {{end}}
+        </div>
+        {{end}}
+      </div>
+    </div>
+
+    <div class="container col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
+      {{template "content" .}}
+    </div>
+    {{template "footer" .}}
+    {{template "analytics" .}}
+  </body>
+</html>
+{{end}}
