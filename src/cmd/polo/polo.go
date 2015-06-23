@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"config"
 	"site"
@@ -59,8 +60,25 @@ func main() {
 		os.Exit(1)
 	}
 
+	// TODO: this need to be clean up
+	directoryExists := func(dir string) bool {
+		if fi, err := os.Stat(dir); err == nil {
+			return fi.IsDir()
+		}
+		return false
+	}
 	sourcedir := args[0]
+	if !directoryExists(sourcedir) {
+		fmt.Fprintf(os.Stderr, "The sourcedir must be an existent directory!")
+		os.Exit(1)
+	}
 	outdir := args[1]
+	if !directoryExists(outdir) {
+		if err := os.Mkdir(outdir, os.ModePerm); err != nil {
+			fmt.Fprintf(os.Stderr, "The outdir didn't exists and couldn't be created!")
+		}
+		time.Sleep(1 * time.Second) // Ugliest thing ever but it doesn't create the dir at time?
+	}
 
 	config, err := config.New(opts.Config)
 	if err != nil {
