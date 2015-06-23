@@ -119,8 +119,8 @@ func main() {
 			watcher.Add(path)
 		}
 
-		addr := fmt.Sprintf(":%d", opts.ServerPort)
-		log.Printf("Static server created on address %s\n", addr)
+		addr := fmt.Sprintf("localhost:%d", opts.ServerPort)
+		log.Printf("Static server running on http://%s\n", addr)
 		log.Fatal(
 			http.ListenAndServe(addr, http.FileServer(http.Dir(outdir))))
 	}

@@ -1,61 +1,101 @@
 polo
 ====
 
-polo is a static blog rendering tool created with Golang.
+[![circleci](https://circleci.com/gh/agonzalezro/polo.svg?style=shield)](https://circleci.com/gh/agonzalezro/polo)
 
-I'm happily using it on my blog: http://agonzalezro.github.io, which means that
-works fine :)
+polo is a static blog generator created with [Go](https://golang.org/). It's
+compatible with your current Jekyll and Pelican markdowns, so your migration
+should be straightforward.
+
+I'm happily using it on my blog: http://agonzalezro.github.io and you can use
+it in yours!
 
 Yes, I know that there a lot of them out there but I just want mine to learn a
 little bit of Go coding.
 
-How to use it
--------------
+Here are some features:
 
-### Install
+- Jekyll and Pelican compatible.
+- Can watch files for changes and in that case regenerate the site.
+- Pretty quick! But new versions will be faster.
+- Deploy it to `gh-pages` or create your own blog on github.
+- You can easily auto deploy it: [example for
+  CircleCI](http://agonzalezro.github.io/how-to-automagically-generate-your-polo-blo  g-with-circleci.html).
+- It supports templating, check [my personal blog
+  source](https://github.com/agonzalezro/agonzalezro.github.io/tree/polo/templates)
+  for an example.
 
-We have 2 ways of doing it, the easiest and the "little bit more complex":
+Install
+-------
 
-#### Easy way: Download it
+Find your version here: https://github.com/agonzalezro/polo/releases
 
-Just grab your binary from here http://gobuild.io/github.com/agonzalezro/polo
-and copy it to wherever you want to have it. The binary by itself is all what
-you need, not even a folder with templates unless you want to override the
-defaults.
+If you want to build it yourself, I am using [gb](http://getgb.io):
 
-#### Build it yourself
+    $ gb build
 
-Let's assume that you have already installed some other Go package, so, you
-already have Go installed and `$GOPATH` in place:
-
-	go install github.com/agonzalezro/polo
-
-This will create a binary for you called `polo`:
-
-    $ polo -help
-    Usage: polo [options] sourcedir outdir
-
-      -config="config.json": the settings file to create your site.
-      -daemon=false: create a simple HTTP server after the blog is created to see the result
-      -port=8080: port where to run the server
-
-### Test (or if you are brave, production :)
-
-If you want try it with the examples:
-
-    $ polo -daemon examples /tmp/test
-
-And now, you can go to http://localhost:8080 and see your generated blog.
-
-Every time that you do a change on any of the files inside `examples`, or you
-create/delete files the blog is going to be regenerated and you will just need
-to reload the web.
-
-
-Just markdown!
+How to use it?
 --------------
 
-I am using markdown only. Whatever thing that is supported by [blackfriday
+If you call the binary without any argument you will get the help:
+
+    $ polo
+    Usage:
+      polo [OPTIONS] sourcedir outputdir
+
+    Application Options:
+      -d, --daemon  start a simple HTTP server watching for markdown changes.
+      -c, --config= the settings file. (config.json)
+      -p, --port=   port where to run the server. (8080)
+
+    Help Options:
+      -h, --help    Show this help message
+
+The basic usage mode is:
+
+    $ polo sourcedir outputdir
+
+If you want a server that watches for you changes, meaning that if you change
+something in `sourcedir` the site will be regenerated:
+
+    $ polo -d sourcedir outputdir
+    ...
+    2015/06/23 23:36:57 Static server running on http://localhost:8080
+
+There is an [example project
+here](https://github.com/agonzalezro/polo/tree/master/example), you can use it
+as `sourcedir`.
+
+Configuration file
+------------------
+
+You can specify your configuration file with the option `-c/--config`, or just use the default value: `config.json`.
+
+An example configuration can be found on the file `config.json`:
+https://github.com/agonzalezro/polo/blob/master/example/config.json
+
+This is what you can configure:
+
+- **author**: if it's not override with the Metadata it's the name that is
+  going to be shown on the articles.
+- **title**: title of the blog, for the `<title>` element and the header.
+- **url**: sometimes the full url is needed.
+- **show{Archive,Categories,Tags}**: if it's true the pages are going to be
+  created and the links are going to be added.
+- **paginationSize**: set it to -1 if you want to show all the posts.
+- **favicon**: the favicon path if you have one.
+
+### 3rd party
+
+- **disqusSitename**: if you want comments on your blog.
+- **googleAnalyticsId**: the Google Analytics ID.
+- **shareThisPublisher**: the ShareThis publisher ID. If provided, there will
+  be some social buttons on the article view.
+
+Content creation with markdown
+------------------------------
+
+Whatever thing that is supported by [blackfriday
 library](https://github.com/russross/blackfriday) is supported here. The only
 difference is that I am adding some metadata to the files.
 
@@ -76,7 +116,7 @@ Supported tags:
   is not defined.
 - **author**: this will override the default author in the config file.
 
-This is one auto explainable example (Pelican):
+This is one auto explainable example for Pelican:
 
     Title: My super title
     Date: 2010-12-03 10:20
@@ -86,9 +126,10 @@ This is one auto explainable example (Pelican):
 
     And here is just the content.
 
-In this case we are overriding the title, slug & author.
+In this case we are overriding the values of your site configuration for the
+title, slug & author.
 
-If you prefer to do it with Jekyll, or you are migrating a Jekyll page:
+If you prefer the Jekyll format, or you are migrating a Jekyll page:
 
     ---
     title: My super title
@@ -101,30 +142,6 @@ If you prefer to do it with Jekyll, or you are migrating a Jekyll page:
     And here is just the content.
 
 The keys are case insensitive in both cases.
-
-Configuration
--------------
-
-An example configuration can be found on the file `config.json`:
-https://github.com/agonzalezro/polo/blob/master/config.json
-
-This is what you can configure there:
-
-- **author**: if it's not override with the Metadata it's the name that is
-  going to be shown on the articles.
-- **title**: title of the blog, for the `<title>` element and the header.
-- **url**: sometimes the full url is needed.
-- **show(Archive|Categories|Tags)**: if it's true the pages are going to be
-  created and the links are going to be added.
-- **paginationSize**: set it to -1 if you want to show all the posts.
-- **favicon**: the favicon path if you have one.
-
-### 3rd party
-
-- **disqusSitename**: if you want comments on your blog.
-- **googleAnalyticsId**: the Google Analytics ID.
-- **shareThisPublisher**: the ShareThis publisher ID. If provided, there will
-  be some social buttons on the article view.
 
 
 Templating
