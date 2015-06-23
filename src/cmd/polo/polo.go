@@ -1,24 +1,24 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"gopkg.in/fsnotify.v1"
 	"log"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 
 	"config"
 	"site"
+
+	flags "github.com/jessevdk/go-flags"
+	fsnotify "gopkg.in/fsnotify.v1"
 )
 
-var (
-	configFile string
-	daemon     bool
-	port       int
-)
+var opts struct {
+	StartDaemon bool   `short:"d" long:"daemon" description:"start a simple HTTP server watching for markdown changes."`
+	Config      string `short:"c" long:"config" default:"config.json" description:"the settings file."`
+	ServerPort  int    `short:"p" long:"port" default:"8080" description:"port where to run the server."`
+}
 
 func getAllSubdirectories(parentPath string) (paths []string, err error) {
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -45,30 +45,24 @@ func writeSite(config config.Config, sourcedir string, outdir string) error {
 	return nil
 }
 
-func init() {
-	flag.StringVar(&configFile, "config", "config.json", "the settings file to create your site.")
-	flag.BoolVar(&daemon, "daemon", false, "create a simple HTTP server after the blog is created to see the result")
-	flag.IntVar(&port, "port", 8080, "port where to run the server")
-
-	flag.Usage = func() {
-		fmt.Fprintf(
-			os.Stderr, "Usage: %s [options] sourcedir outdir\n\n",
-			path.Base(os.Args[0]))
-		flag.PrintDefaults()
-	}
-}
-
 func main() {
-	flag.Parse()
-	if flag.NArg() != 2 {
-		flag.Usage()
+	parser := flags.NewParser(&opts, flags.Default)
+	parser.Usage = "[OPTIONS] sourcedir outputdir" + parser.Usage
+
+	args, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
+
+	if len(args) != 2 {
+		parser.WriteHelp(os.Stderr)
 		os.Exit(1)
 	}
 
-	sourcedir := flag.Arg(0)
-	outdir := flag.Arg(1)
+	sourcedir := args[0]
+	outdir := args[1]
 
-	config, err := config.New(configFile)
+	config, err := config.New(opts.Config)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -76,7 +70,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if daemon {
+	if opts.StartDaemon {
 		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
 			log.Fatal(err)
@@ -107,7 +101,7 @@ func main() {
 			watcher.Add(path)
 		}
 
-		addr := fmt.Sprintf(":%d", port)
+		addr := fmt.Sprintf(":%d", opts.ServerPort)
 		log.Printf("Static server created on address %s\n", addr)
 		log.Fatal(
 			http.ListenAndServe(addr, http.FileServer(http.Dir(outdir))))
