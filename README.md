@@ -178,12 +178,18 @@ bootstrap theme:
 3. Now you run polo from the folder that owns `templates/` and
 4. PROFIT!
 
-### Modifying the one that is going to be included on the binary.
+### Modifying the one that is going to be included on the binary
 
 If you want to do changes on the default theme, you need to remember that you
 MUST recreate the binary data, you should do it this way:
 
-    go-bindata -o templates/bindata.go -pkg=templates -ignore=bindata.go templates/...
+    go-bindata -o src/templates/bindata.go \
+               -pkg=templates \
+               -ignore=bindata.go \
+               src/templates/...
+
+There is a [issue open](https://github.com/agonzalezro/polo/issues/35) to
+automate this.
 
 Auto deploy
 -----------
