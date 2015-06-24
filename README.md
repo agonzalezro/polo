@@ -183,10 +183,12 @@ bootstrap theme:
 If you want to do changes on the default theme, you need to remember that you
 MUST recreate the binary data, you should do it this way:
 
-    go-bindata -o src/templates/bindata.go \
-               -pkg=templates \
-               -ignore=bindata.go \
-               src/templates/...
+    $ cd src
+    $ go-bindata -o src/templates/bindata.go -pkg=templates -ignore=bindata.go src/templates/...
+    $ cd -
+
+It's quite important that you `cd` to `src` before doing it, if not the paths
+will not match.
 
 There is a [issue open](https://github.com/agonzalezro/polo/issues/35) to
 automate this.
