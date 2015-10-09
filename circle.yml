@@ -1,10 +1,6 @@
 dependencies:
   override:
     - go get github.com/constabulary/gb/...
-    - gb vendor fetch gopkg.in/fsnotify.v1
-    - gb vendor fetch github.com/russross/blackfriday
-    - gb vendor fetch github.com/shurcooL/sanitized_anchor_name
-    - gb vendor fetch github.com/jessevdk/go-flags
 
 test:
   override:
