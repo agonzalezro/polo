@@ -72,6 +72,9 @@ func loadTemplates() {
 // createAbsolutePath assures that the full dir tree exists and return the
 // point to the file
 func (site Site) createAbsolutePath(elem ...string) (file *os.File, err error) {
+	site.mux.Lock()
+	defer site.mux.Unlock()
+
 	// TODO: I am not pretty sure that this is the best way to do this
 	s := make([]string, 1, 1)
 	s[0] = site.outputPath

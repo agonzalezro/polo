@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	"config"
 	"file"
@@ -21,6 +22,8 @@ type Site struct {
 	Articles, Pages []*file.ParsedFile
 	Categories      []string
 	Tags            []string
+
+	mux sync.Mutex
 }
 
 // New returns a new Site object.
