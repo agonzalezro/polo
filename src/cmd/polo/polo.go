@@ -82,7 +82,9 @@ func main() {
 
 	config, err := config.New(opts.Config)
 	if err != nil {
-		log.Panic(err)
+		log.Println(err)
+		log.Println("This usually happens because the JSON file is not well formed.")
+		os.Exit(1)
 	}
 	if err := writeSite(*config, sourcedir, outdir); err != nil {
 		log.Fatal(err)
