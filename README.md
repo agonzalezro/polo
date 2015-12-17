@@ -30,9 +30,9 @@ Install
 
 Find your version here: https://github.com/agonzalezro/polo/releases
 
-If you want to build it yourself, I am using [gb](http://getgb.io):
+If you want to build it yourself, I am using [glide](https://github.com/Masterminds/glide) for the dependencies. This means that you will need to use Go 1.5 at least:
 
-    $ gb build
+    $ glide install
 
 How to use it?
 --------------

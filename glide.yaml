@@ -1,0 +1,6 @@
+parent: null
+package: main
+import:
+- package: gopkg.in/fsnotify.v1
+- package: github.com/jessevdk/go-flags
+- package: github.com/russross/blackfriday

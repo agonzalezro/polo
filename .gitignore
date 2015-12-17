@@ -32,3 +32,4 @@ _testmain.go
 # getgb.io
 bin/
 pkg/
+vendor/
