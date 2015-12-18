@@ -1,4 +1,4 @@
-package config
+package site
 
 import (
 	"encoding/json"
@@ -31,7 +31,7 @@ type ErrorOpeningConfigFile error
 type ErrorParsingConfigFile error
 
 // New returns a New configuration after parse the file received as input.
-func New(configFile string) (*Config, error) {
+func NewConfig(configFile string) (*Config, error) {
 	file, err := os.Open(configFile)
 	if err != nil {
 		return nil, ErrorOpeningConfigFile(err)

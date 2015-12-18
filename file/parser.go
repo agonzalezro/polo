@@ -2,8 +2,8 @@ package file
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -11,7 +11,7 @@ import (
 	"github.com/agonzalezro/polo/utils"
 )
 
-func parseData(value string) (t time.Time, err error) {
+func parseDate(value string) (t time.Time, err error) {
 	acceptedFormats := []string{
 		"2006-01-02 15:04",
 		"2006-1-2 15:04",
@@ -26,9 +26,11 @@ func parseData(value string) (t time.Time, err error) {
 	return t, fmt.Errorf("Accepted date/time formats are: %v", acceptedFormats)
 }
 
+var NoMetadataFound = errors.New("No metadata found!")
+
 // parseMetadata sets the metadata on the ParsedFile.
 // If no metadata is found no error is going to be raised.
-func (pf *ParsedFile) parseMetadata() (hasMetadata bool, err error) {
+func (pf *ParsedFile) parseMetadata() (err error) {
 	for pf.scanner.Scan() {
 		line := pf.scanner.Text()
 
@@ -44,10 +46,7 @@ func (pf *ParsedFile) parseMetadata() (hasMetadata bool, err error) {
 		case "---":
 			// If the metadata is enclosed between lines like this: '---'
 			// (Jekyll style) we need to return after process it.
-			if hasMetadata == true {
-				return true, nil
-			}
-			hasMetadata = true
+			return nil
 		case "tags":
 			// Remove all the spaces between comma and tag and
 			// add one comma at the beginning and other at the end, this will
@@ -55,13 +54,11 @@ func (pf *ParsedFile) parseMetadata() (hasMetadata bool, err error) {
 			for _, tag := range strings.Split(value, ",") {
 				pf.Tags = append(pf.Tags, strings.Replace(tag, " ", "", -1))
 			}
-			hasMetadata = true
 		case "date":
-			pf.Date, err = parseData(value)
+			pf.Date, err = parseDate(value)
 			if err != nil {
-				return true, err
+				return err
 			}
-			hasMetadata = true
 		case "slug":
 			prefix := "/"
 			if strings.HasPrefix(value, "/") {
@@ -72,43 +69,34 @@ func (pf *ParsedFile) parseMetadata() (hasMetadata bool, err error) {
 				suffix = "" // And don't duplicate the html either
 			}
 			pf.Slug = fmt.Sprintf("%s%s%s", prefix, value, suffix)
-			hasMetadata = true
-		case "title":
-			pf.Title = value
-			hasMetadata = true
 		case "status":
 			pf.status = value
-			hasMetadata = true
 		case "summary":
 			pf.summary = value
-			hasMetadata = true
 		case "author":
 			pf.Author = value
-			hasMetadata = true
+		case "title":
+			pf.Title = value
 		default:
-			return hasMetadata, nil
+			return nil
 		}
 	}
 
-	return hasMetadata, nil
+	return NoMetadataFound
 }
 
-// Loads the content of the file object from the given filename.
-func (pf *ParsedFile) load(filePath string) error {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return err
-	}
-
-	pf.scanner = bufio.NewScanner(file)
-	hasMetadata, err := pf.parseMetadata()
-	if err != nil {
-		return err
-	}
-	if !hasMetadata {
-		// Rewind the file and reset the scanner
-		file.Seek(0, 0)
-		pf.scanner = bufio.NewScanner(file)
+// parse parses the content and metadata storing the on private fields of the struct
+func (pf *ParsedFile) parse() error {
+	if err := pf.parseMetadata(); err != nil {
+		switch err {
+		case NoMetadataFound:
+			// We have already read part of the file but we didn't found metadata.
+			// Rewind the file and reset the scanner
+			pf.file.Seek(0, 0)
+			pf.scanner = bufio.NewScanner(pf.file)
+		default:
+			return err
+		}
 	}
 
 	isFirstLine := true
@@ -116,15 +104,16 @@ func (pf *ParsedFile) load(filePath string) error {
 		line := pf.scanner.Text()
 		if isFirstLine == true {
 			if line == "" {
-				// Do not read empty lines at the beginning
+				// Ignore empty lines at the beginning of the file
 				continue
 			}
 
 			if pf.Title == "" {
-				// Needed to remove markdown syntax before storing values on the structs
+				// This is needed to remove markdown syntax before storing values on the structs
 				re := regexp.MustCompile("^#+\\s*")
 				pf.Title = re.ReplaceAllString(line, "")
 			}
+
 			if pf.Slug == "" {
 				prefix := ""
 				if pf.IsPage {
@@ -132,19 +121,14 @@ func (pf *ParsedFile) load(filePath string) error {
 				}
 				pf.Slug = fmt.Sprintf("%s/%s.html", prefix, utils.Slugify(pf.Title))
 			}
+
 			pf.scanner.Scan() // We don't want the title underlining
 
 			isFirstLine = false
-		} else {
-			pf.Content += line + "\n"
+			continue
 		}
-	}
 
-	// Set the category from the filePath
-	splittedPath := strings.Split(filePath, "/")
-	length := len(splittedPath)
-	if length > 1 {
-		pf.Category = splittedPath[len(splittedPath)-2]
+		pf.rawContent += line + "\n"
 	}
 
 	return nil

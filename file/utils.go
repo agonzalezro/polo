@@ -7,8 +7,15 @@ import (
 	"github.com/russross/blackfriday"
 )
 
-// HTML return a template.HTML with the original content rendered as markdown.
-func (file ParsedFile) HTML(content string) template.HTML {
+func IsMarkdown(path string) bool {
+	return strings.HasSuffix(path, ".md") || strings.HasSuffix(path, ".markdown")
+}
+
+func IsPage(path string) bool {
+	return strings.HasPrefix(path, "pages/") || strings.Index(path, "/pages/") > 0
+}
+
+func HTML(content string) template.HTML {
 	// set up the HTML renderer
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
@@ -27,17 +34,11 @@ func (file ParsedFile) HTML(content string) template.HTML {
 	return template.HTML(html)
 }
 
-// Summary returns the document summary in case that it was defined on the
-// metadata, or it creates a small summary (1st paragraph) if not.
-func (file ParsedFile) Summary() string {
-	if file.summary != "" {
-		return file.summary
-	}
-	// Avoid empty lines
-	for _, content := range strings.Split(file.Content, "\n\n") {
-		if content != "" {
-			return content
-		}
+func CategoryFromPath(path string) string {
+	splittedPath := strings.Split(path, "/")
+	length := len(splittedPath)
+	if length > 1 {
+		return splittedPath[length-2]
 	}
 	return ""
 }

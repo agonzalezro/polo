@@ -3,7 +3,7 @@ polo
 
 [![circleci](https://circleci.com/gh/agonzalezro/polo.svg?style=shield)](https://circleci.com/gh/agonzalezro/polo)
 
-polo is a static blog generator created with [Go](https://golang.org/). It's
+polo is a static site generator created with [Go](https://golang.org/). It's
 compatible with your current Jekyll and Pelican markdowns, so your migration
 should be straightforward.
 
@@ -18,7 +18,7 @@ Here are some features:
 - Jekyll and Pelican compatible.
 - Can watch files for changes and in that case regenerate the site.
 - Pretty quick! But new versions will be faster.
-- Deploy it to `gh-pages` or create your own blog on github.
+- Deploy it to `gh-pages` or create your own site on github.
 - You can easily auto deploy it: [example for
   CircleCI](http://agonzalezro.github.io/how-to-automagically-generate-your-polo-blo  g-with-circleci.html).
 - It supports templating, check [my personal blog
@@ -78,7 +78,7 @@ This is what you can configure:
 
 - **author**: if it's not override with the Metadata it's the name that is
   going to be shown on the articles.
-- **title**: title of the blog, for the `<title>` element and the header.
+- **title**: title of the site, for the `<title>` element and the header.
 - **url**: sometimes the full url is needed.
 - **show{Archive,Categories,Tags}**: if it's true the pages are going to be
   created and the links are going to be added.
@@ -87,7 +87,7 @@ This is what you can configure:
 
 ### 3rd party
 
-- **disqusSitename**: if you want comments on your blog.
+- **disqusSitename**: if you want comments on your site.
 - **googleAnalyticsId**: the Google Analytics ID.
 - **shareThisPublisher**: the ShareThis publisher ID. If provided, there will
   be some social buttons on the article view.
