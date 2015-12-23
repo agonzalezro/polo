@@ -8,6 +8,7 @@ import (
 	"os"
 
 	log "github.com/Sirupsen/logrus"
+	config "github.com/agonzalezro/polo/config"
 	"github.com/agonzalezro/polo/site"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 	fsnotify "gopkg.in/fsnotify.v1"
@@ -18,7 +19,7 @@ var (
 
 	startDaemon = app.Flag("start-daemon", "Start a simple HTTP server watching for markdown changes.").Short('d').Bool()
 	port        = app.Flag("port", "Port where to run the server.").Default("8080").Short('p').Int()
-	config      = app.Flag("config", "The settings file.").Short('c').Default("config.json").ExistingFile()
+	configPath  = app.Flag("config", "The settings file.").Short('c').Default("config.json").ExistingFile()
 
 	source = app.Arg("source", "Folder where the content resides.").Required().ExistingDir()
 	output = app.Arg("output", "Where to store the published files.").Required().String()
@@ -34,17 +35,19 @@ func main() {
 		}
 	}
 
-	s, err := site.New(*source, *output, *config)
+	s, err := site.New(*source, *output, *configPath)
 	if err != nil {
 		switch err.(type) {
-		case site.ErrorParsingConfigFile:
+		case config.ErrorParsingConfigFile:
 			app.FatalUsage("Malformed JSON config file: ", err)
 		default:
 			log.Fatal(err)
 		}
 	}
 
-	s.Write()
+	if err := s.Write(); err != nil {
+		log.Fatal(err)
+	}
 
 	if *startDaemon {
 		watcher, err := fsnotify.NewWatcher()
