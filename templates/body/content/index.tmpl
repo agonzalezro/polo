@@ -1,0 +1,81 @@
+{{define "title"}}
+{{.Config.Title}}
+{{end}}
+
+{{define "content"}}
+<div class="container col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
+  {{if .Articles}}
+    {{range $_, $article := .Articles}}
+    <article>
+      <h1><a href="{{$article.Slug}}">{{$article.Title}}</a></h1>
+
+      <p>
+        {{if or $.Config.Author $article.Author}}
+        <span class="label label-default">by {{if $article.Author}}{{$article.Author}}{{else}}{{$.Config.Author}}{{end}}</span>
+        {{end}}
+
+        {{if $article.Date}}
+        <span class="label label-default">{{$.HumanizeDatetime $article.Date}}</span>
+        {{end}}
+
+        {{if $article.Category}}
+        <a class="label label-success" href="/category/{{$article.Category}}.html">{{$article.Category}}</a>
+        {{end}}
+
+        {{if $article.Tags}}
+        {{range $_, $tag := $article.Tags}}
+        <a class="label label-info" href="/tag/{{$tag}}.html">{{$tag}}</a>
+        {{end}}
+        {{end}}
+      </p>
+
+      {{$article.Content}}
+
+      <p class="text-right">
+        <a class="btn btn-default"
+          {{if .Config.DisqusSitename}}
+          href="{{$article.Slug}}#disqus_thread">Leave a comment!
+          {{else}}
+          href="{{$article.Slug}}">Permalink
+          {{end}}
+        </a>
+      </p>
+      {{end}}
+    </article>
+    <hr>
+    {{end}}
+
+  {{else}}
+    <h1>Nothing to see here!</h1>
+    <hr>
+  {{end}}
+
+  {{if gt .NumberOfPages 1}}
+  <div class="text-center">
+    <ul class="pagination">
+      <li class="
+        {{if eq $.PageNumber 1}}
+          disabled
+        {{end}}">
+        <a href="{{$.PreviousSlug $.PageNumber}}">&laquo;</a>
+      </li>
+
+      {{range $_, $page := .ArrayOfPages}}
+      <li {{if eq $page $.PageNumber}}class="active"{{end}}>
+        <a href="/index{{if ne $page 1}}{{$page}}{{end}}.html">
+          {{$page}}
+        </a>
+      </li>
+      {{end}} {{/* range */}}
+
+      <li class="
+        {{if eq $.PageNumber $.NumberOfPages}}
+          disabled
+        {{end}}">
+        <a href="{{$.NextSlug $.PageNumber}}">&raquo;</a>
+      </li>
+    </ul>
+  </div>
+  {{end}} {{/* if */}}
+</div>
+{{end}} {{/* content */}}

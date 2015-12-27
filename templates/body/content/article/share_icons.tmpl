@@ -1,4 +1,5 @@
-{{define "sharethis"}}
+{{define "share_icons"}}
+{{if .Config.ShareThisPublisher}}
 <br>
 <span class='st_sharethis_large' displayText='ShareThis'></span>
 <span class='st_facebook_large' displayText='Facebook'></span>
@@ -7,4 +8,5 @@
 <span class='st_googleplus_large' displayText='Google +'></span>
 <span class='st_reddit_large' displayText='Reddit'></span>
 <span class='st_email_large' displayText='Email'></span>
+{{end}}
 {{end}}

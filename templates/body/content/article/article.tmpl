@@ -1,0 +1,34 @@
+{{define "title"}}
+{{.Article.Title}} | {{.Config.Title}}
+{{end}}
+
+{{define "content"}}
+<div class="container col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
+  <h1>{{.Article.Title}}</h1>
+
+  <p>
+    {{if or .Config.Author .Article.Author}}
+    <span class="label label-default">by {{if $article.Author}}{{$article.Author}}{{else}}{{$.Config.Author}}{{end}}</span>
+
+    {{if .Article.Date}}
+    <span class="label label-default">{{.HumanizeDatetime .Article.Date}}</span>
+    {{end}}
+
+    {{if .Article.Category}}
+    <a class="label label-success" href="/category/{{.Article.Category}}.html">{{.Article.Category}}</a>
+    {{end}}
+
+    {{if .Article.Tags}}
+    {{range $_, $tag := .Article.Tags}}
+    <a class="label label-info" href="/tag/{{$tag}}.html">{{$tag}}</a>
+    {{end}}
+    {{end}}
+  </p>
+
+  {{.Article.Content}}
+
+  {{template "sharethis_icons" .}}
+  {{template "disqus" .}}
+</div>
+{{end}}
+{{end}}

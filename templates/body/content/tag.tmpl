@@ -1,0 +1,14 @@
+{{define "title"}}
+{{.Tag}} | {{.Site.Config.Title}}
+{{end}}
+
+{{define "content"}}
+<div class="container col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
+  <h1>{{.Tag}}</h1>
+  <ul>
+    {{range $_, $article := .Articles}}
+    <li><a href="{{$article.Slug}}">{{$article.Title}}</a></li>
+    {{end}}
+  </ul>
+</div>
+{{end}}
