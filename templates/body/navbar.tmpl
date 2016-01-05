@@ -15,11 +15,11 @@
       {{if or .Pages (and .Articles .Config.ShowArchive)}}
       <ul class="nav navbar-nav">
         {{if .Config.ShowArchive}}
-        <li><a href="/archives.html">Archives</a></li>
+        <li><a href="/archive.html">Archives</a></li>
         {{end}}
 
         {{range $_, $page := .Pages}}
-        <li><a href="{{$page.Slug}}">{{$page.Title}}</a></li>
+        <li><a href="/pages/{{$page.Slug}}">{{$page.Title}}</a></li>
         {{end}}
       </ul>
       {{ end }}

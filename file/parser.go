@@ -31,7 +31,10 @@ var NoMetadataFound = errors.New("No metadata found!")
 // parseMetadata sets the metadata on the ParsedFile.
 // If no metadata is found no error is going to be raised.
 func (pf *ParsedFile) parseMetadata() (err error) {
+	var count int
+
 	for pf.scanner.Scan() {
+		count++
 		line := pf.scanner.Text()
 
 		// In case that the metadata starts like :date:
@@ -46,7 +49,9 @@ func (pf *ParsedFile) parseMetadata() (err error) {
 		case "---":
 			// If the metadata is enclosed between lines like this: '---'
 			// (Jekyll style) we need to return after process it.
-			return nil
+			if count > 1 {
+				goto END
+			}
 		case "tags":
 			// Remove all the spaces between comma and tag and
 			// add one comma at the beginning and other at the end, this will
@@ -78,16 +83,25 @@ func (pf *ParsedFile) parseMetadata() (err error) {
 		case "title":
 			pf.Title = value
 		default:
-			return nil
+			goto END
 		}
 	}
 
-	return NoMetadataFound
+END:
+	// TODO: not the best way to check this. Find a cleaner way.
+	allUnset := func() bool {
+		return (pf.Tags == nil && pf.Date.IsZero() && pf.Slug == "" && pf.status == "" && pf.Summary == "" && pf.Author == "" && pf.Title == "")
+	}
+	if count <= 2 && allUnset() {
+		return NoMetadataFound
+	}
+	return nil
 }
 
 // parse parses the content and metadata storing the on private fields of the struct
 func (pf *ParsedFile) parse() error {
-	if err := pf.parseMetadata(); err != nil {
+	var err error
+	if err = pf.parseMetadata(); err != nil {
 		switch err {
 		case NoMetadataFound:
 			// We have already read part of the file but we didn't found metadata.
@@ -115,11 +129,7 @@ func (pf *ParsedFile) parse() error {
 			}
 
 			if pf.Slug == "" {
-				prefix := ""
-				if pf.IsPage {
-					prefix = "/pages"
-				}
-				pf.Slug = fmt.Sprintf("%s/%s.html", prefix, utils.Slugify(pf.Title))
+				pf.Slug = fmt.Sprintf("/%s.html", utils.Slugify(pf.Title))
 			}
 
 			pf.scanner.Scan() // We don't want the title underlining

@@ -8,7 +8,7 @@
 
   <p>
     {{if or .Config.Author .Article.Author}}
-    <span class="label label-default">by {{if $article.Author}}{{$article.Author}}{{else}}{{$.Config.Author}}{{end}}</span>
+    <span class="label label-default">by {{if .Article.Author}}{{.Article.Author}}{{else}}{{.Config.Author}}{{end}}</span>
 
     {{if .Article.Date}}
     <span class="label label-default">{{.HumanizeDatetime .Article.Date}}</span>
@@ -27,8 +27,8 @@
 
   {{.Article.Content}}
 
-  {{template "sharethis_icons" .}}
-  {{template "disqus" .}}
+  {{block "sharethis_icons" .}}{{end}}
+  {{block "disqus" .}}{{end}}
 </div>
 {{end}}
 {{end}}

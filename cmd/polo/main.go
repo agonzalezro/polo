@@ -1,6 +1,6 @@
 package main
 
-//go:generate go-bindata -o ../../templates/bindata.go -pkg=templates -ignore=bindata.go ../../templates/...
+//go:generate go-bindata -o ../../templates/assets.go -pkg=assets -ignore=assets.go ../../templates/...
 
 import (
 	"fmt"
@@ -21,6 +21,10 @@ var (
 	port        = app.Flag("port", "Port where to run the server.").Default("8080").Short('p').Int()
 	configPath  = app.Flag("config", "The settings file.").Short('c').Default("config.json").ExistingFile()
 
+	templatesBasePath = app.Flag("templates-base-path", fmt.Sprintf("Where the '%s/' folder resides (in case it exists).", site.TemplatesRelativePath)).Default(".").ExistingDir()
+
+	verbose = app.Flag("verbose", "Verbose logging.").Short('v').Bool()
+
 	source = app.Arg("source", "Folder where the content resides.").Required().ExistingDir()
 	output = app.Arg("output", "Where to store the published files.").Required().String()
 )
@@ -29,13 +33,17 @@ func main() {
 	app.HelpFlag.Short('h')
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
+	if *verbose {
+		log.SetLevel(log.DebugLevel)
+	}
+
 	if !dirExists(*output) {
 		if err := os.Mkdir(*output, os.ModePerm); err != nil {
 			app.FatalUsage("The output folder couldn't be created!")
 		}
 	}
 
-	s, err := site.New(*source, *output, *configPath)
+	s, err := site.New(*source, *output, *configPath, *templatesBasePath)
 	if err != nil {
 		switch err.(type) {
 		case config.ErrorParsingConfigFile:
@@ -78,6 +86,6 @@ func main() {
 
 		addr := fmt.Sprintf(":%d", *port)
 		log.Infof("Static server running on %s\n", addr)
-		log.Fatal(http.ListenAndServe(addr, http.FileServer(http.Dir(*port))))
+		log.Fatal(http.ListenAndServe(addr, http.FileServer(http.Dir(*output))))
 	}
 }

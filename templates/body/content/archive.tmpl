@@ -4,7 +4,7 @@ Archives | {{.Config.Title}}
 
 {{define "content"}}
 <div class="container col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
-  <h1>Archives</h1>
+  <h1>Archive</h1>
   <dl class="dl-horizontal">
     {{range $_, $article := .Articles}}
     <dt>{{$.HumanizeDatetime $article.Date}}</dt>

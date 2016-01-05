@@ -2,7 +2,6 @@ package site
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"path"
 	"path/filepath"
@@ -16,20 +15,20 @@ import (
 
 const (
 	atomPath           = "feeds/all.atom.xml"
-	archivePath        = "archives.html"
+	archivePath        = "archive.html"
 	articlesPrefixPath = "" // TODO: perhaps allow configuration for this?
 	pagesPrefixPath    = "pages/"
 
 	categoryPathFormater = "category/%s.html"
 	tagPathFormater      = "tag/%s.html"
 
-	indexTemplate    = ""
-	atomTemplate     = ""
-	articleTemplate  = ""
-	pageTemplate     = ""
-	archiveTemplate  = ""
-	categoryTemplate = ""
-	tagTemplate      = ""
+	indexTemplate    = "index"
+	atomTemplate     = "atom"
+	articleTemplate  = "article"
+	pageTemplate     = "page"
+	archiveTemplate  = "archive"
+	categoryTemplate = "category"
+	tagTemplate      = "tag"
 )
 
 type Siteable interface {
@@ -38,8 +37,9 @@ type Siteable interface {
 }
 
 type Site struct {
-	port           int
-	source, output string
+	port              int
+	source, output    string
+	templatesBasePath string
 
 	slugs map[string]bool
 	mux   *sync.Mutex
@@ -48,18 +48,19 @@ type Site struct {
 	Context *context.Context
 }
 
-func New(source, output, configPath string) (*Site, error) {
+func New(source, output, configPath, templatesBasePath string) (*Site, error) {
 	config, err := config.New(configPath)
 	if err != nil {
 		return nil, err
 	}
 
 	s := Site{
-		source:  source,
-		output:  output,
-		Config:  *config,
-		Context: context.New(*config),
-		mux:     &sync.Mutex{},
+		source:            source,
+		output:            output,
+		templatesBasePath: templatesBasePath,
+		Config:            *config,
+		Context:           context.New(*config),
+		mux:               &sync.Mutex{},
 	}
 
 	return &s, s.Load()
@@ -153,21 +154,28 @@ func (s Site) Write() error {
 	}
 }
 
-func (s Site) writef(path string, templateName string, c *context.Context) error {
-	// Create absolute path
-	// Execute it from Assets
-	return nil
-}
+func (s Site) writef(relativePath string, templateName string, c context.Context) error {
+	tpl, err := s.getTemplate(templateName)
+	if err != nil {
+		return err
+	}
 
-func (s Site) NumberOfPages() int {
-	return int(
-		math.Ceil(
-			float64(len(s.Context.Articles)) / float64(s.Config.PaginationSize)))
+	// Ensure absolute path exists
+	err = s.mkdirP(relativePath)
+	if err != nil {
+		return err
+	}
 
+	f, err := os.Create(path.Join(s.output, relativePath))
+	if err != nil {
+		return err
+	}
+
+	return tpl.ExecuteTemplate(f, "base", c)
 }
 
 func (s Site) writeIndexes(wg *sync.WaitGroup, errCh chan<- error) {
-	for i := 1; i <= s.NumberOfPages(); i++ {
+	for i := 1; i <= s.Context.NumberOfPages(); i++ {
 		wg.Add(1)
 		go func(page int) {
 			defer wg.Done()
@@ -179,9 +187,10 @@ func (s Site) writeIndexes(wg *sync.WaitGroup, errCh chan<- error) {
 
 			c := s.Context.Copy()
 			c.Articles = c.FilterByPage(page)
+
 			c.CurrentPage = page
 
-			if err := s.writef(indexFile, indexTemplate, c); err != nil {
+			if err := s.writef(indexFile, indexTemplate, *c); err != nil {
 				errCh <- err
 			}
 		}(i)
@@ -202,7 +211,7 @@ func (s Site) writeFeeds(wg *sync.WaitGroup, errCh chan<- error) {
 		c.Articles = c.Articles[0:limit]
 
 		// TODO: just ATOM feeds, not RSS unless somebody needs it and he/she is willing to implement it :)
-		if err := s.writef(atomPath, atomTemplate, c); err != nil {
+		if err := s.writef(atomPath, atomTemplate, *c); err != nil {
 			errCh <- err
 		}
 	}()
@@ -218,7 +227,7 @@ func (s Site) writeArticles(wg *sync.WaitGroup, errCh chan<- error) {
 			c.Article = article
 
 			p := path.Join(articlesPrefixPath, article.Slug)
-			if err := s.writef(p, articleTemplate, c); err != nil {
+			if err := s.writef(p, articleTemplate, *c); err != nil {
 				errCh <- err
 			}
 		}(article)
@@ -235,7 +244,7 @@ func (s Site) writePages(wg *sync.WaitGroup, errCh chan<- error) {
 			c.Page = page
 
 			p := path.Join(pagesPrefixPath, page.Slug)
-			if err := s.writef(p, pageTemplate, c); err != nil {
+			if err := s.writef(p, pageTemplate, *c); err != nil {
 				errCh <- err
 			}
 		}(page)
@@ -246,7 +255,7 @@ func (s Site) writeArchive(wg *sync.WaitGroup, errCh chan<- error) {
 	wg.Add(1)
 	defer wg.Done()
 
-	if err := s.writef(archivePath, archiveTemplate, s.Context); err != nil {
+	if err := s.writef(archivePath, archiveTemplate, *s.Context); err != nil {
 		errCh <- err
 	}
 }
@@ -262,7 +271,7 @@ func (s Site) writeCategories(wg *sync.WaitGroup, errCh chan<- error) {
 			c.Category = category
 
 			p := fmt.Sprintf(categoryPathFormater, category)
-			if err := s.writef(p, categoryTemplate, c); err != nil {
+			if err := s.writef(p, categoryTemplate, *c); err != nil {
 				errCh <- err
 			}
 		}(category)
@@ -280,7 +289,7 @@ func (s Site) writeTags(wg *sync.WaitGroup, errCh chan<- error) {
 			c.Tag = tag
 
 			p := fmt.Sprintf(tagPathFormater, tag)
-			if err := s.writef(p, tagTemplate, c); err != nil {
+			if err := s.writef(p, tagTemplate, *c); err != nil {
 				errCh <- err
 			}
 		}(tag)

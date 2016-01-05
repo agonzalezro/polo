@@ -33,14 +33,13 @@
 
       <p class="text-right">
         <a class="btn btn-default"
-          {{if .Config.DisqusSitename}}
-          href="{{$article.Slug}}#disqus_thread">Leave a comment!
-          {{else}}
+          {{if $.Config.DisqusSitename}}
           href="{{$article.Slug}}">Permalink
+          {{else}}
+          href="{{$article.Slug}}#disqus_thread">Leave a comment!
           {{end}}
         </a>
       </p>
-      {{end}}
     </article>
     <hr>
     {{end}}
@@ -50,18 +49,20 @@
     <hr>
   {{end}}
 
+{{.NumberOfPages}}
+
   {{if gt .NumberOfPages 1}}
   <div class="text-center">
     <ul class="pagination">
       <li class="
-        {{if eq $.PageNumber 1}}
+        {{if eq $.CurrentPage 1}}
           disabled
         {{end}}">
-        <a href="{{$.PreviousSlug $.PageNumber}}">&laquo;</a>
+        <a href="{{$.PreviousSlug $.CurrentPage}}">&laquo;</a>
       </li>
 
       {{range $_, $page := .ArrayOfPages}}
-      <li {{if eq $page $.PageNumber}}class="active"{{end}}>
+      <li {{if eq $page $.CurrentPage}}class="active"{{end}}>
         <a href="/index{{if ne $page 1}}{{$page}}{{end}}.html">
           {{$page}}
         </a>
@@ -69,10 +70,10 @@
       {{end}} {{/* range */}}
 
       <li class="
-        {{if eq $.PageNumber $.NumberOfPages}}
+        {{if eq $.CurrentPage $.NumberOfPages}}
           disabled
         {{end}}">
-        <a href="{{$.NextSlug $.PageNumber}}">&raquo;</a>
+        <a href="{{$.NextSlug $.CurrentPage}}">&raquo;</a>
       </li>
     </ul>
   </div>
