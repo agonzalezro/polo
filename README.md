@@ -8,7 +8,8 @@ compatible with your current Jekyll and Pelican markdowns, so your migration
 should be straightforward.
 
 I'm happily using it on my blog: http://agonzalezro.github.io and you can use
-it in yours!
+it in yours! There are other places with completely different templates using
+it as well: http://k8s.uk/
 
 Yes, I know that there a lot of them out there but I just want mine to learn a
 little bit of Go coding.
@@ -28,7 +29,19 @@ Here are some features:
 Install
 -------
 
+### From binary
+
 Find your version here: https://github.com/agonzalezro/polo/releases
+
+### Docker
+
+The latest master is always available as a Docker image:
+
+    docker run agonzalezro/polo
+
+Remember that you will need to mount volumes and so on.
+
+### DIY
 
 If you want to build it yourself, I am using [glide](https://github.com/Masterminds/glide) for the dependencies. This means that you will need to use Go 1.5 at least:
 
@@ -39,32 +52,36 @@ How to use it?
 
 If you call the binary without any argument you will get the help:
 
-    $ polo
-    Usage:
-      polo [OPTIONS] sourcedir outputdir
+    $ polo -h
+    usage: polo [<flags>] <source> <output>
 
-    Application Options:
-      -d, --daemon  start a simple HTTP server watching for markdown changes.
-      -c, --config= the settings file. (config.json)
-      -p, --port=   port where to run the server. (8080)
+    Static site generator "compatible" with Jekyll & Pelican content.
 
-    Help Options:
-      -h, --help    Show this help message
+    Flags:
+      -h, --help                   Show context-sensitive help (also try --help-long and --help-man).
+      -d, --start-daemon           Start a simple HTTP server watching for markdown changes.
+      -p, --port=8080              Port where to run the server.
+      -c, --config="config.json"   The settings file.
+          --templates-base-path=.  Where the 'templates/' folder resides (in case it exists).
+      -v, --verbose                Verbose logging.
+
+    Args:
+      <source>  Folder where the content resides.
+      <output>  Where to store the published files.
 
 The basic usage mode is:
 
-    $ polo sourcedir outputdir
+    $ polo <source> <output>
 
 If you want a server that watches for you changes, meaning that if you change
 something in `sourcedir` the site will be regenerated:
 
-    $ polo -d sourcedir outputdir
-    ...
-    2015/06/23 23:36:57 Static server running on http://localhost:8080
+    $ polo -d <source> <output>
+    INFO[0000] Static server running on :8080
 
 There is an [example project
 here](https://github.com/agonzalezro/polo/tree/master/example), you can use it
-as `sourcedir`.
+as `<source>`.
 
 Configuration file
 ------------------
@@ -164,7 +181,7 @@ bootstrap theme:
 
 1. Wherever you want (but it needs to be the same place where you run polo
    from) you create the folder `templates/base`.
-2. Then you edit `templates/base/header.html`, adding the following content:
+2. Then you edit `templates/head/header.html`, adding the following content:
 
 ````html
 {{define "header"}}
@@ -181,17 +198,11 @@ bootstrap theme:
 ### Modifying the one that is going to be included on the binary
 
 If you want to do changes on the default theme, you need to remember that you
-MUST recreate the binary data, you should do it this way:
+MUST recreate the binary data. Use the `go:generate` provided on `cmd/polo` for
+that purpose:
 
-    $ cd src
-    $ go-bindata -o src/templates/bindata.go -pkg=templates -ignore=bindata.go src/templates/...
-    $ cd -
-
-It's quite important that you `cd` to `src` before doing it, if not the paths
-will not match.
-
-There is a [issue open](https://github.com/agonzalezro/polo/issues/35) to
-automate this.
+    $ cd cmd/polo
+    $ go generate
 
 Auto deploy
 -----------
