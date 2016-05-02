@@ -4,23 +4,64 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
-	"strings"
 	"text/template"
 
 	log "github.com/Sirupsen/logrus"
+	assets "github.com/agonzalezro/polo/templates"
 )
 
+// TODO: probably to be override from the cmd
 const TemplatesRelativePath = "templates"
 
-var (
-	templates map[string]*template.Template
+var templates map[string]*template.Template
 
-	contentTemplatePaths map[string][]string // As for example an article, that needs disqus, analytics...
-)
+// TODO: this could be our own type based on template.Template
+func parseFileOrAsset(t *template.Template, p string) (*template.Template, error) {
+	if _, err := os.Stat(p); err == nil {
+		log.Debug("Loading template from disk: ", p)
+		return t.ParseFiles(p)
+	}
 
-func init() {
-	contentTemplatePaths = make(map[string][]string)
+	b, err := assets.Asset(p)
+	if err != nil {
+		return nil, err
+	}
+	log.Debug("Loading template from asset: ", p)
+	return t.Parse(string(b))
+}
+
+// mustParseCommonTemplates will parse common templates and fatal if it can.
+// Common templates are those templates shared.
+func mustParseCommonTemplates() *template.Template {
+	// We can't just walk a dir to find them because GOPATH will not be available
+	// on a binary installation.
+	// TODO: it would be cool to use go-bindata list but _bindata is private.
+	commonTemplatePaths := []string{
+		"templates/base.tmpl",
+		"templates/body/analytics.tmpl",
+		"templates/body/footer.tmpl",
+		"templates/body/footer_scripts.tmpl",
+		"templates/body/navbar.tmpl",
+		"templates/head/header.tmpl",
+		"templates/head/header_scripts.tmpl",
+		"templates/head/share_this.tmpl",
+	}
+
+	tpl := template.New("common")
+	var err error
+	for _, p := range commonTemplatePaths {
+		tpl, err = parseFileOrAsset(tpl, p)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return tpl
+}
+
+func mustParseContentTemplates(commonTpl *template.Template, templatesPath string) map[string]*template.Template {
+	// Content templates are those templates that are willing to change depending
+	// on what we are rending at that moment.
+	contentTemplatePaths := make(map[string][]string)
 	for templateName, paths := range map[string][]string{
 		articleTemplate:  []string{"article/article.tmpl", "article/disqus.tmpl", "article/share_icons.tmpl"},
 		archiveTemplate:  []string{"archive.tmpl"},
@@ -31,75 +72,52 @@ func init() {
 	} {
 		contentTemplatePaths[templateName] = paths
 	}
-}
 
-// TODO: refactor this monster
-// TODO: use Asset
-// Also not sure if it's better to return templates or just change the global var
-func (s *Site) getTemplates() (map[string]*template.Template, error) {
-	s.mux.Lock()
-	defer s.mux.Unlock()
-
-	if templates != nil {
-		return templates, nil
-	}
-
-	templates = make(map[string]*template.Template)
-	templatesPath := path.Join(s.templatesBasePath, TemplatesRelativePath)
-
-	commonTpl := template.New("common")
-
-	walkFn := func(p string, info os.FileInfo, err error) error {
-		isNoContentTemplate := !info.IsDir() && !strings.Contains(p, "content/") && strings.HasSuffix(p, ".tmpl")
-		if isNoContentTemplate {
-			log.Debugf("Loading template: %s", p)
-			commonTpl, err = commonTpl.ParseFiles(p) // TODO: Use Asset here as well
-			if err != nil {
-				log.Warning(err)
-			}
-		}
-		return err
-	}
-
-	filepath.Walk(templatesPath, walkFn)
-
+	templates = make(map[string]*template.Template) // WARNING package level var
 	for name, paths := range contentTemplatePaths {
 		tpl, err := commonTpl.Clone()
 		if err != nil {
-			return nil, err
+			log.Fatal(err)
 		}
-		// tpl, err := tpl.AddParseTree("base", commonTpl.Tree)
-		// if err != nil {
-		// 	return nil, err
-		// }
+
 		for _, p := range paths {
-			p = path.Join(s.templatesBasePath, TemplatesRelativePath, "body", "content", p)
-			log.Debugf("Loading template: %s", p)
-			tpl, err = tpl.ParseFiles(p) // TODO: use Assets
+			p = path.Join(templatesPath, "body", "content", p)
+			tpl, err = parseFileOrAsset(tpl, p)
 			if err != nil {
-				return nil, err
+				log.Fatal(err)
 			}
 		}
 		templates[name] = tpl
 	}
 
+	// Atom template doesn't inherit from any shared template
 	tpl := template.New("atom")
-	tpl, err := tpl.ParseFiles("templates/atom.tmpl") // TODO: use Asset
+	tpl, err := parseFileOrAsset(tpl, "templates/atom.tmpl")
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 	templates[atomTemplate] = tpl
 
-	return templates, nil
+	return templates
+}
+
+func (s *Site) getTemplates() map[string]*template.Template {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	if templates != nil {
+		return templates
+	}
+
+	templatesPath := path.Join(s.templatesBasePath, TemplatesRelativePath)
+	log.Debug("Templates path: ", templatesPath)
+
+	commonTpl := mustParseCommonTemplates()
+	return mustParseContentTemplates(commonTpl, templatesPath)
 }
 
 func (s *Site) getTemplate(name string) (*template.Template, error) {
-	templates, err := s.getTemplates()
-	if err != nil {
-		return nil, err
-	}
-
-	if v, ok := templates[name]; ok {
+	if v, ok := s.getTemplates()[name]; ok {
 		return v, nil
 	}
 	return nil, fmt.Errorf("Template '%s' not found!", name)

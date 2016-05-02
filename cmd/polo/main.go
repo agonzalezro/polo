@@ -1,6 +1,6 @@
 package main
 
-//go:generate go-bindata -o ../../templates/assets.go -pkg=assets -ignore=assets.go ../../templates/...
+//go:generate go-bindata -o ../../templates/assets.go -pkg=assets -ignore=.DS_Store -ignore=assets.go -prefix=../.. ../../templates/...
 
 import (
 	"fmt"
