@@ -15,4 +15,4 @@ for os in "${OSS[@]}"; do
 done
 
 # Link darwin amd64 to bin/polo
-ln -s bin/polo-darwin-amd64 bin/polo
+ln -s polo-darwin-amd64 bin/polo
