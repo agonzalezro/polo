@@ -16,7 +16,7 @@ func (c Context) FilterByPage(page int) []file.ParsedFile {
 	if start+paginationSize <= len(c.Articles) {
 		end = start + paginationSize
 	} else {
-		end = len(c.Articles) - 1
+		end = len(c.Articles)
 	}
 
 	return c.Articles[start:end]
