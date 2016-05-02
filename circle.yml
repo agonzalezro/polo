@@ -1,7 +1,12 @@
+machine:
+  services:
+    - docker
+
 dependencies:
   override:
-    - go get github.com/constabulary/gb/...
+    - docker info
+    - docker build -t agonzalezro/polo .
 
 test:
   override:
-    - gb test
+    - docker run --entrypoint go agonzalezro/polo test $(docker run --entrypoint glide agonzalezro/polo novendor)

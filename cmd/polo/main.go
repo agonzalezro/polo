@@ -19,7 +19,7 @@ var (
 
 	startDaemon = app.Flag("start-daemon", "Start a simple HTTP server watching for markdown changes.").Short('d').Bool()
 	port        = app.Flag("port", "Port where to run the server.").Default("8080").Short('p').Int()
-	configPath  = app.Flag("config", "The settings file.").Short('c').Default("config.json").ExistingFile()
+	configPath  = app.Flag("config", "The settings file.").Short('c').Default("config.json").String()
 
 	templatesBasePath = app.Flag("templates-base-path", fmt.Sprintf("Where the '%s/' folder resides (in case it exists).", site.TemplatesRelativePath)).Default(".").ExistingDir()
 
@@ -85,7 +85,7 @@ func main() {
 		}
 
 		addr := fmt.Sprintf(":%d", *port)
-		log.Infof("Static server running on %s\n", addr)
+		log.Info("Static server running on ", addr)
 		log.Fatal(http.ListenAndServe(addr, http.FileServer(http.Dir(*output))))
 	}
 }
