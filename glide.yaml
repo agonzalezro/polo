@@ -1,0 +1,8 @@
+package: main
+import:
+- package: github.com/Sirupsen/logrus
+- package: gopkg.in/fsnotify.v1
+- package: github.com/jessevdk/go-flags
+- package: github.com/russross/blackfriday
+- package: gopkg.in/alecthomas/kingpin.v2
+- package: github.com/stretchr/testify

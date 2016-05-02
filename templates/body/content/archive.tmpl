@@ -1,0 +1,15 @@
+{{define "title"}}
+Archives | {{.Config.Title}}
+{{end}}
+
+{{define "content"}}
+<div class="container col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
+  <h1>Archive</h1>
+  <dl class="dl-horizontal">
+    {{range $_, $article := .Articles}}
+    <dt>{{$.HumanizeDatetime $article.Date}}</dt>
+    <dd><a href="{{$article.Slug}}">{{$article.Title}}</a></dd>
+    {{end}}
+  </dl>
+</div>
+{{end}}

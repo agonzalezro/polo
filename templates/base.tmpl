@@ -1,0 +1,30 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {{if .Config.Favicon}}
+    <link rel="shortcut icon" href="{{.Config.Favicon}}" />
+    {{end}}
+
+    <title>{{block "title" .}}{{end}}</title>
+
+    {{block "header" .}}{{end}}
+    {{block "header_scripts" .}}{{end}}
+    {{block "share_this" .}}{{end}}
+
+    <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Sitewide ATOM Feed">
+  </head>
+
+  <body>
+    {{block "navbar" .}}{{end}}
+    {{block "content" .}}{{end}}
+    {{block "footer" .}}{{end}}
+    {{block "footer_scripts" .}}{{end}}
+    {{block "analytics" .}}{{end}}
+  </body>
+</html>
+{{end}}

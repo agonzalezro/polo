@@ -1,0 +1,10 @@
+{{define "title"}}
+{{.Page.Title}} | {{.Config.Title}}
+{{end}}
+
+{{define "content"}}
+<div class="container col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
+  <h1>{{.Page.Title}}</h1>
+  {{.Page.Content}}
+</div>
+{{end}}

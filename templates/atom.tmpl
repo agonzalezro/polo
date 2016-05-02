@@ -1,0 +1,27 @@
+{{define "base"}}
+<?xml version="1.0" encoding="utf-8"?>
+
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>{{.Config.Title}}</title>
+  <link href="{{.Config.URL}}" />
+  <updated>{{.Updated}}</updated>
+
+  {{if .Articles}}
+  {{range $_, $article := .Articles}}
+  <entry>
+    <title>{{$article.Title}}</title>
+    <link href="{{$.Config.URL}}{{$article.Slug}}" />
+    {{if $article.Date}}
+    <updated>{{$article.Date}}</updated>
+    {{end}}
+    <summary>
+      {{$article.Summary}}
+    </summary>
+    <author>
+      <name>{{$.Config.Author}}</name>
+    </author>
+  </entry>
+  {{end}}
+  {{end}}
+</feed>
+{{end}}

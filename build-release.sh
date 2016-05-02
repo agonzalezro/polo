@@ -3,12 +3,16 @@
 OSS=(darwin freebsd linux)
 ARCHS=(386 amd64)
 
-rm bin/polo*
+mkdir -p bin
+rm -f bin/polo*
 
 for os in "${OSS[@]}"; do
     for arch in "${ARCHS[@]}"; do
-        GOOS=$os GOARCH=$arch gb build
+    	echo "Building for $os($arch)"
+        GOOS=$os GOARCH=$arch make
+        mv bin/polo bin/polo-$os-$arch
     done
 done
 
-mv bin/polo bin/polo-darwin-amd64
+# Link darwin amd64 to bin/polo
+ln -s bin/polo-darwin-amd64 bin/polo

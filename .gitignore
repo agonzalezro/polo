@@ -29,6 +29,5 @@ _testmain.go
 
 .DS_Store
 
-# getgb.io
 bin/
-pkg/
+vendor/
