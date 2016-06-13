@@ -102,7 +102,9 @@ func (s *Site) parse(path string, fileInfo os.FileInfo, err error) error {
 	}
 
 	// If it's not a page, it's an article
-	s.Context.Articles = append(s.Context.Articles, *file)
+	if file.IsPublished() {
+		s.Context.Articles = append(s.Context.Articles, *file)
+	}
 
 	// Just supported on Articles
 	if len(file.Tags) > 0 {
