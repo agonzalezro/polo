@@ -129,7 +129,7 @@ func (pf *ParsedFile) parse() error {
 			}
 
 			if pf.Slug == "" {
-				pf.Slug = fmt.Sprintf("/%s.html", utils.Slugify(pf.Title))
+				pf.Slug = fmt.Sprintf("%s.html", utils.Slugify(pf.Title))
 			}
 
 			pf.scanner.Scan() // We don't want the title underlining
