@@ -19,7 +19,7 @@
         {{end}}
 
         {{range $_, $page := .Pages}}
-        <li><a href="/pages/{{$page.Slug}}">{{$page.Title}}</a></li>
+        <li><a href="/pages{{$page.Slug}}">{{$page.Title}}</a></li>
         {{end}}
       </ul>
       {{ end }}
