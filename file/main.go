@@ -73,5 +73,5 @@ func (f ParsedFile) summaryOrFirstParagraph() string {
 // IsPublished will return true if the status is not draft
 // TODO: I wonder if `draft: true` could be a better way of doing this.
 func (f ParsedFile) IsPublished() bool {
-	return f.status == "draft"
+	return strings.ToLower(f.status) != "draft"
 }
