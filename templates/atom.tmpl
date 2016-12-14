@@ -10,7 +10,7 @@
   {{range $_, $article := .Articles}}
   <entry>
     <title>{{$article.Title}}</title>
-    <link href="{{$.Config.URL}}{{$article.Slug}}" />
+    <link href="{{$.Config.URL}}/{{$article.Slug}}" />
     {{if $article.Date}}
     <updated>{{$article.Date}}</updated>
     {{end}}
