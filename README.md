@@ -21,7 +21,7 @@ Here are some features:
 - Pretty quick! But new versions will be faster.
 - Deploy it to `gh-pages` or create your own site on github.
 - You can easily auto deploy it: [example for
-  CircleCI](http://agonzalezro.github.io/how-to-automagically-generate-your-polo-blo  g-with-circleci.html).
+  CircleCI](http://agonzalezro.github.io/how-to-automagically-generate-your-polo-blog-with-circleci.html).
 - It supports templating, check [my personal blog
   source](https://github.com/agonzalezro/agonzalezro.github.io/tree/polo/templates)
   for an example.
